@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-coreclaw",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node for CoreClaw — search the scraper marketplace, run scrapers, fetch results, and manage runs from your workflows",
 	"license": "MIT",
 	"homepage": "https://github.com/Core-Claw/n8n-nodes-coreclaw",
