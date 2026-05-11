@@ -1,0 +1,63 @@
+{
+	"name": "n8n-nodes-coreclaw",
+	"version": "0.1.0",
+	"description": "n8n community node for CoreClaw — search the scraper marketplace, run scrapers, fetch results, and manage runs from your workflows",
+	"license": "MIT",
+	"homepage": "https://github.com/Core-Claw/n8n-nodes-coreclaw",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"coreclaw",
+		"scraper",
+		"web-scraping",
+		"data-extraction"
+	],
+	"author": {
+		"name": "CoreClaw",
+		"email": "support@coreclaw.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Core-Claw/n8n-nodes-coreclaw.git"
+	},
+		"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"dev:local": "N8N_SECURE_COOKIE=false n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"engines": {
+		"node": ">=20.15"
+	},
+	"files": [
+		"dist",
+		"CHANGELOG.md"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/CoreClawApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/CoreClaw/CoreClaw.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}

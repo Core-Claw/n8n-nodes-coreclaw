@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-coreclaw.coreClaw",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Data & Storage", "Developer Tools"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/Core-Claw/n8n-nodes-coreclaw#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/Core-Claw/n8n-nodes-coreclaw#operations"
+			}
+		]
+	}
+}

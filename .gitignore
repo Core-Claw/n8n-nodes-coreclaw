@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/launch.json
+*.swp
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Test / coverage / pack output
+coverage/
+.nyc_output/
+*.tgz
+
+# Caches
+.cache/
+.npm/
+
+# Tooling project memory
+.claude/
+
+# AI agent / internal dev docs (kept locally, not published)
+.agents/
+AGENTS.md
+CLAUDE.md
+LOCAL_TESTING.md
+scripts/
+
+# Lockfiles from other package managers (we use npm)
+pnpm-lock.yaml
+yarn.lock
