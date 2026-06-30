@@ -1,114 +1,178 @@
 # n8n-nodes-coreclaw
 
-Use [CoreClaw](https://coreclaw.com) in n8n to search the scraper marketplace, run scrapers, fetch structured results, and manage runs — directly from your workflows.
+Use [CoreClaw](https://coreclaw.com) API v2 in n8n to discover workers, run workers and saved tasks, manage worker runs, fetch results, export data, inspect account state, and receive run callbacks.
 
-CoreClaw is a managed scraper marketplace: thousands of ready-to-run scrapers (Amazon, Google Maps, TikTok, Twitter, …) you can launch with one API call and consume in n8n like any other data source.
+[n8n](https://n8n.io/) is a workflow automation platform. This package provides:
 
-[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
-
-- [Installation](#installation)
-- [Credentials](#credentials)
-- [Operations](#operations)
-- [Example workflow](#example-workflow)
-- [Error handling](#error-handling)
-- [Compatibility](#compatibility)
-- [Resources](#resources)
+- **CoreClaw**: an action node for CoreClaw API v2 workers, worker runs, worker tasks, store workers, proxy regions, and account data.
+- **CoreClaw Trigger**: a webhook trigger node for CoreClaw `callback_url` run events.
 
 ## Installation
 
 Follow the [n8n community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/).
 
-In short, on n8n self-hosted:
+On self-hosted n8n:
 
-1. Go to **Settings → Community Nodes**.
-2. Click **Install** and enter `n8n-nodes-coreclaw`.
-3. Reload the editor — the **CoreClaw** node will appear in the node panel.
+1. Go to **Settings > Community Nodes**.
+2. Install `n8n-nodes-coreclaw`.
+3. Reload the editor. The **CoreClaw** and **CoreClaw Trigger** nodes will appear in the node panel.
 
 ## Credentials
 
-1. Sign up at [coreclaw.com](https://coreclaw.com).
-2. Create an API key in **Console → API Keys**.
-3. In n8n, create a credential of type **CoreClaw API**:
+1. Create a CoreClaw API key in the CoreClaw console.
+2. In n8n, create a credential of type **CoreClaw API**.
 
 | Field | Value |
 | --- | --- |
-| **API Key** | Your CoreClaw API key. |
-| **Base URL** | `https://openapi.coreclaw.com` (default — only change for private deployments). |
+| **API Key** | Your CoreClaw API v2 key. |
+| **Base URL** | `https://openapi.coreclaw.com` by default. Change only for private deployments. |
 
-The credential is sent as a request header `api-key: <your-key>`. n8n's credential test calls `POST /api/v1/account/info` and surfaces an error if the key is rejected.
+Requests send both `api-key: <key>` and `Authorization: Bearer <key>`. The credential test calls `GET /api/v2/users/account`.
 
-## Operations
+## CoreClaw Node
 
-The node groups operations under four resources, mapping 1:1 to the CoreClaw REST API.
+The action node exposes 28 CoreClaw API v2 operations.
 
-### Scraper
-- **Search** — Search the marketplace by keyword.
-- **Get Details** — Get a scraper's `version`, default `system_params`, `custom_params_schema`, and README.
-- **Run** — Start an asynchronous scraper run. Returns a `run_slug`.
+### Store Worker
 
-### Run
-- **Get** — Get current execution status.
-- **Get Many** — List historical runs with pagination + filters.
-- **Get Results** — Fetch paginated result records from a finished run.
-- **Export Results** — Get a temporary download URL for the full result set as CSV / JSON.
-- **Get Logs** — Fetch execution logs.
-- **Abort** — Stop an in-flight run.
-- **Rerun** — Re-execute a previous run with identical inputs.
+- **List**: list public store workers, with keyword search and pagination.
 
-### Task
-- **Run** — Run a saved task configured in the CoreClaw console.
+### Worker
+
+- **List**
+- **Get**
+- **Get Input Schema**
+- **Run**
+- **Get Last Run**
+- **Abort Last Run**
+- **Export Last Run Results**
+- **Get Last Run Log**
+- **Rerun Last Run**
+- **List Last Run Results**
+
+### Worker Run
+
+- **List**
+- **Get Last**
+- **Abort Last**
+- **Export Last Results**
+- **Get Last Log**
+- **Rerun Last**
+- **List Last Results**
+- **Get**
+- **Abort**
+- **Get Log**
+- **Rerun**
+- **List Results**
+- **Export Results**
+
+### Worker Task
+
+- **List**
+- **Run**
+
+### Proxy
+
+- **List Regions**
 
 ### Account
-- **Get Info** — Fetch your balance, traffic usage, and plan expiration.
 
-Run statuses: `1=Ready`, `2=Running`, `3=Succeeded`, `4=Failed`, `5=Aborting`.
+- **Get Info**
 
-## Example workflow
+Worker, worker task, and worker run fields use resource locators where useful. You can pick from CoreClaw lists or paste an ID/path manually.
 
-The canonical pattern is **Search → Get Details → Run → poll Get → Get Results**.
+## Running Workers
 
+**Worker > Run** supports two input modes:
+
+- **Input JSON**: worker business input. The node sends it as `input.parameters.custom`.
+- **Raw Input JSON**: advanced full CoreClaw `input` object.
+
+Use one input mode per run. If both are set, the node fails before making a request.
+
+Run, rerun, and worker task run operations support `callback_url`, `is_async`, `offset`, and `limit` where the CoreClaw API supports them. For completion handling, chain a later **Get** operation or use **CoreClaw Trigger** with `callback_url`.
+
+## CoreClaw Trigger
+
+CoreClaw does not currently provide a documented webhook registration API. The **CoreClaw Trigger** node is a local n8n webhook receiver.
+
+Use it by copying the trigger webhook URL into `callback_url` on **Worker > Run**, **Worker Task > Run**, or rerun operations.
+
+The trigger:
+
+- Accepts `POST` callback payloads.
+- Can validate `run_id` and `run_status`.
+- Can filter events by status: Any, Succeeded, Failed, Running, or Aborted.
+- Can include request headers under `_headers`.
+
+Expected callback payload fields include `run_id`, `run_status`, `error_message`, `execution_start_timestamp`, `execution_end_timestamp`, `running_duration`, `result_count`, and `result_message`.
+
+## Workflows
+
+### Discover, Run, Fetch Results
+
+1. **CoreClaw: Store Worker > List**
+2. **CoreClaw: Worker > Get Input Schema**
+3. **CoreClaw: Worker > Run**
+4. **CoreClaw: Worker Run > Get**
+5. **CoreClaw: Worker Run > List Results**
+
+### Run a Saved Task and Export
+
+1. **CoreClaw: Worker Task > List**
+2. **CoreClaw: Worker Task > Run**
+3. **CoreClaw: Worker Run > Get**
+4. **CoreClaw: Worker Run > Export Results**
+
+### Receive Callback Events
+
+1. Add **CoreClaw Trigger** to a workflow.
+2. Copy its webhook URL.
+3. Paste that URL into `callback_url` on **Worker > Run**, **Worker Task > Run**, or rerun.
+4. Use the trigger output in downstream workflow steps.
+
+## Error Handling
+
+CoreClaw API v2 responses use an envelope with `code`, `message`, `data`, and sometimes `request_id` or `details`.
+
+The node:
+
+- Returns `data` when `code` is `0`.
+- Throws an n8n API error for non-zero CoreClaw codes.
+- Includes CoreClaw messages, details, and request IDs when available.
+- Retries only safe GET requests on retryable failures.
+- Does not retry run, rerun, or abort POST requests.
+
+Enable **Continue On Fail** in n8n to emit an item containing `error` and `errorDescription` instead of stopping the workflow.
+
+## Live Tests
+
+Live smoke tests are opt-in:
+
+```powershell
+$env:CORECLAW_LIVE_TESTS='1'
+$env:CORECLAW_API_KEY='<your key>'
+npm test -- nodes/CoreClaw/__tests__/e2e.live.test.ts
+Remove-Item Env:\CORECLAW_API_KEY
+Remove-Item Env:\CORECLAW_LIVE_TESTS
 ```
-[Manual Trigger]
-   ↓
-[CoreClaw: Search]         query="amazon", limit=5
-   ↓
-[CoreClaw: Get Details]    scraperSlug={{ $json.slug }}
-   ↓
-[CoreClaw: Run]            scraperSlug={{ ... }}
-                           version={{ $json.version }}
-                           customParams={ "startURLs": [{"url":"https://amazon.com/dp/B001"}] }
-   ↓
-[Wait 5s]
-   ↓
-[CoreClaw: Get]            runSlug={{ $json.run_slug }}
-   ↓
-[IF status == 3]
-   ├─ true  → [CoreClaw: Get Results]   runSlug={{ ... }}, returnAll=true
-   └─ false → [Wait + loop back]
-```
 
-The `version` and the shape of `customParams` come from **Get Details** — don't invent them.
+Without both environment variables, the live suite is skipped.
 
-**Async completion via Webhook:** instead of polling, set **Additional Fields → Callback URL** on **Run / Run Task / Rerun** to an n8n Webhook node URL. CoreClaw POSTs the run completion event to that URL.
+## Endpoint Scope
 
-## Error handling
-
-CoreClaw always responds with HTTP 200 — application errors are encoded in a `code` field in the body. This node decodes that envelope and surfaces actionable `NodeApiError`s in n8n. Enable **Continue On Fail** to surface errors in the output stream (with `error` and `errorDescription` fields) instead of halting the workflow.
-
-The most common error is `[50002] Scraper run failed` on **Run** — usually a required field in `customParams` is missing or null. Call **Get Details** first and check `custom_params_schema`.
-
-For the full error code reference, see the [CoreClaw API documentation](https://docs.coreclaw.com/api/).
+This package intentionally does not expose `POST /api/v2/workers/{workerId}/versions`, `PUT /api/v2/workers/{workerId}/versions/{version}`, or `GET /api/v2/workers/{workerId}/internal`.
 
 ## Compatibility
 
-- Requires n8n `1.x` (`n8nNodesApiVersion` 1).
-- Requires Node.js `>=20.15`.
+- n8n community node API version 1.
+- Node.js `>=20.15`.
 
 ## Resources
 
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
 - [CoreClaw API documentation](https://docs.coreclaw.com/api/)
-- [CoreClaw marketplace](https://coreclaw.com/store)
+- [CoreClaw](https://coreclaw.com)
 
 ## Changelog
 
