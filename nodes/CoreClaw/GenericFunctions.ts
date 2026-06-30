@@ -1,7 +1,6 @@
 import type {
 	IDataObject,
 	IExecuteFunctions,
-	IHttpRequestMethods,
 	IHttpRequestOptions,
 	ILoadOptionsFunctions,
 	JsonObject,
@@ -19,15 +18,8 @@ type CoreClawContext = IExecuteFunctions | ILoadOptionsFunctions;
 
 export async function coreClawApiRequest(
 	this: CoreClawContext,
-	argsOrMethod: CoreClawRequestArgs | IHttpRequestMethods,
-	path?: string,
-	body: IDataObject = {},
-	qs: IDataObject = {},
+	args: CoreClawRequestArgs,
 ): Promise<unknown> {
-	const args =
-		typeof argsOrMethod === 'string'
-			? { method: argsOrMethod, path: path ?? '', body, qs }
-			: argsOrMethod;
 	const credentials = await this.getCredentials('coreClawApi');
 	const baseUrl = String(credentials.baseUrl || CORECLAW_DEFAULT_BASE_URL).replace(/\/$/, '');
 	const apiKey = String(credentials.apiKey || '');

@@ -16,6 +16,10 @@ function createContext(response: unknown, credentials = {}) {
 }
 
 describe('coreClawApiRequest', () => {
+	it('exposes only the v2 object-argument request signature', () => {
+		expect(coreClawApiRequest.length).toBe(1);
+	});
+
 	it('unwraps successful CoreClaw envelopes', async () => {
 		const context = createContext({ code: 0, message: 'success', data: { ok: true } });
 

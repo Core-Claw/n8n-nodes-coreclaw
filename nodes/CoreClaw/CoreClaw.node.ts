@@ -73,13 +73,12 @@ export class CoreClaw implements INodeType {
 				this: ILoadOptionsFunctions,
 				filter?: string,
 			): Promise<INodeListSearchResult> {
-				const data = (await coreClawApiRequest.call(
-					this,
-					'GET',
-					'/api/store',
-					{},
-					{ search: filter ?? '', limit: 50 },
-				));
+				const data = await coreClawApiRequest.call(this, {
+					method: 'GET',
+					path: '/api/store',
+					qs: { search: filter ?? '', limit: 50 },
+					retrySafe: true,
+				});
 
 				const items = normalizeScraperSearchResults(data);
 
@@ -119,26 +118,24 @@ export class CoreClaw implements INodeType {
 					if (operation === 'search') {
 						const query = this.getNodeParameter('query', i, '') as string;
 						const limit = this.getNodeParameter('limit', i, 50) as number;
-						result = await coreClawApiRequest.call(
-							this,
-							'GET',
-							'/api/store',
-							{},
-							{ search: query, limit },
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'GET',
+							path: '/api/store',
+							qs: { search: query, limit },
+							retrySafe: true,
+						});
 						result = normalizeScraperSearchResults(result);
 						pushAsList = true;
 					} else if (operation === 'getDetails') {
 						const slug = this.getNodeParameter('scraperSlug', i, '', {
 							extractValue: true,
 						}) as string;
-						result = await coreClawApiRequest.call(
-							this,
-							'GET',
-							'/api/scraper',
-							{},
-							{ slug },
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'GET',
+							path: '/api/scraper',
+							qs: { slug },
+							retrySafe: true,
+						});
 					} else if (operation === 'run') {
 						const slug = this.getNodeParameter('scraperSlug', i, '', {
 							extractValue: true,
@@ -183,7 +180,11 @@ export class CoreClaw implements INodeType {
 						};
 						if (additional.callbackUrl) body.callback_url = additional.callbackUrl;
 
-						result = await coreClawApiRequest.call(this, 'POST', '/api/v1/scraper/run', body);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/scraper/run',
+							body,
+						});
 					} else {
 						throw unknownOperation.call(this, resource, operation, i);
 					}
@@ -193,12 +194,11 @@ export class CoreClaw implements INodeType {
 				else if (resource === 'run') {
 					if (operation === 'get') {
 						const runSlug = this.getNodeParameter('runSlug', i) as string;
-						result = await coreClawApiRequest.call(
-							this,
-							'POST',
-							'/api/v1/run/detail',
-							{ run_slug: runSlug },
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/run/detail',
+							body: { run_slug: runSlug },
+						});
 					} else if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
 						const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
@@ -234,28 +234,25 @@ export class CoreClaw implements INodeType {
 							format,
 							filter_keys: splitCsv(filterKeysRaw),
 						};
-						result = await coreClawApiRequest.call(
-							this,
-							'POST',
-							'/api/v1/run/result/export',
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/run/result/export',
 							body,
-						);
+						});
 					} else if (operation === 'getLogs') {
 						const runSlug = this.getNodeParameter('runSlug', i) as string;
-						result = await coreClawApiRequest.call(
-							this,
-							'POST',
-							'/api/v1/run/last/log',
-							{ run_slug: runSlug },
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/run/last/log',
+							body: { run_slug: runSlug },
+						});
 					} else if (operation === 'abort') {
 						const runSlug = this.getNodeParameter('runSlug', i) as string;
-						result = await coreClawApiRequest.call(
-							this,
-							'POST',
-							'/api/v1/scraper/abort',
-							{ run_slug: runSlug },
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/scraper/abort',
+							body: { run_slug: runSlug },
+						});
 					} else if (operation === 'rerun') {
 						const runSlug = this.getNodeParameter('runSlug', i) as string;
 						const additional = this.getNodeParameter(
@@ -265,7 +262,11 @@ export class CoreClaw implements INodeType {
 						) as IDataObject;
 						const body: IDataObject = { run_slug: runSlug };
 						if (additional.callbackUrl) body.callback_url = additional.callbackUrl;
-						result = await coreClawApiRequest.call(this, 'POST', '/api/v1/rerun', body);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/rerun',
+							body,
+						});
 					} else {
 						throw unknownOperation.call(this, resource, operation, i);
 					}
@@ -282,7 +283,11 @@ export class CoreClaw implements INodeType {
 						) as IDataObject;
 						const body: IDataObject = { task_slug: taskSlug };
 						if (additional.callbackUrl) body.callback_url = additional.callbackUrl;
-						result = await coreClawApiRequest.call(this, 'POST', '/api/v1/task/run', body);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/task/run',
+							body,
+						});
 					} else {
 						throw unknownOperation.call(this, resource, operation, i);
 					}
@@ -291,12 +296,11 @@ export class CoreClaw implements INodeType {
 				// ===================== ACCOUNT =====================
 				else if (resource === 'account') {
 					if (operation === 'getInfo') {
-						result = await coreClawApiRequest.call(
-							this,
-							'POST',
-							'/api/v1/account/info',
-							{},
-						);
+						result = await coreClawApiRequest.call(this, {
+							method: 'POST',
+							path: '/api/v1/account/info',
+							body: {},
+						});
 					} else {
 						throw unknownOperation.call(this, resource, operation, i);
 					}
@@ -360,10 +364,14 @@ async function paginate(
 	let pageIndex = 1;
 
 	while (collected.length < limit) {
-		const data = (await coreClawApiRequest.call(this, 'POST', path, {
-			...baseBody,
-			page_index: pageIndex,
-			page_size: pageSize,
+		const data = (await coreClawApiRequest.call(this, {
+			method: 'POST',
+			path,
+			body: {
+				...baseBody,
+				page_index: pageIndex,
+				page_size: pageSize,
+			},
 		})) as IDataObject | null;
 
 		// Guard: any non-object response (null / array) means the API contract changed.
