@@ -5,8 +5,16 @@ describe('pagination helpers', () => {
 		expect(extractItems({ [key]: [{ id: 1 }] })).toEqual([{ id: 1 }]);
 	});
 
+	it('uses direct array input', () => {
+		expect(extractItems([{ id: 1 }])).toEqual([{ id: 1 }]);
+	});
+
 	it('uses data when data is an array', () => {
 		expect(extractItems({ data: [{ id: 1 }] })).toEqual([{ id: 1 }]);
+	});
+
+	it.each([undefined, null, 'text', 1])('returns undefined for non-object input %p', (input) => {
+		expect(extractItems(input)).toBeUndefined();
 	});
 
 	it('returns undefined for ambiguous objects', () => {
