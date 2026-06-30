@@ -165,6 +165,20 @@ export const workerTaskFields: INodeProperties[] = [
 		},
 		description: 'Keyword for worker task title or slug',
 	},
+	{
+		displayName: 'Worker ID',
+		name: 'worker_id',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['workerTask'],
+				operation: ['list'],
+			},
+		},
+		description: 'Filter by worker slug or owner path',
+		placeholder: 'owner~demo-worker',
+	},
 	workerTaskIdField(runOperations),
 	callbackUrlField(runOperations),
 	isAsyncField(runOperations),

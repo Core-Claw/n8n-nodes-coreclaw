@@ -274,6 +274,20 @@ export const workerRunFields: INodeProperties[] = [
 		],
 		description: 'Filter by worker run status',
 	},
+	{
+		displayName: 'Worker ID',
+		name: 'worker_id',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['workerRun'],
+				operation: ['list'],
+			},
+		},
+		description: 'Filter by worker slug or owner path',
+		placeholder: 'owner~demo-worker',
+	},
 	callbackUrlField(runBodyOperations),
 	isAsyncField(runBodyOperations),
 	offsetField(runBodyOperations),

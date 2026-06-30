@@ -1,5 +1,18 @@
+import type { INodeProperties } from 'n8n-workflow';
+
 import { CoreClaw } from '../CoreClaw.node';
+import { workerRunFields } from '../descriptions/WorkerRunDescription';
+import { workerTaskFields } from '../descriptions/WorkerTaskDescription';
 import { endpointSpecs, excludedEndpointKeys } from '../resources/endpointSpecs';
+
+function fieldNamesFor(fields: INodeProperties[], resource: string, operation: string) {
+	return fields
+		.filter((field) => {
+			const show = field.displayOptions?.show;
+			return show?.resource?.includes(resource) && show?.operation?.includes(operation);
+		})
+		.map((field) => field.name);
+}
 
 describe('CoreClaw API v2 endpoint scope', () => {
 	it('exposes exactly the 28 allowed API v2 endpoints', () => {
@@ -25,5 +38,10 @@ describe('CoreClaw API v2 endpoint scope', () => {
 		expect(propertiesText).toContain('Get Input Schema');
 		expect(propertiesText).not.toContain('/versions');
 		expect(propertiesText).not.toContain('/internal');
+	});
+
+	it('exposes worker_id list filters in description metadata', () => {
+		expect(fieldNamesFor(workerRunFields, 'workerRun', 'list')).toContain('worker_id');
+		expect(fieldNamesFor(workerTaskFields, 'workerTask', 'list')).toContain('worker_id');
 	});
 });
