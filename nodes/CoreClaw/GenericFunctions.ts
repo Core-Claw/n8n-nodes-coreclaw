@@ -70,15 +70,18 @@ export function unwrapCoreClawEnvelope(this: CoreClawContext, response: CoreClaw
 
 	if (response.code !== 0) {
 		const hint = CORECLAW_ERROR_HINTS[response.code];
-		const details = Array.isArray(response.details) ? response.details.join('; ') : '';
-		const description = [
+		const details = formatDetails((response as { details?: unknown }).details);
+		const descriptionParts = [
 			response.message,
 			hint,
 			details,
 			response.request_id ? `request_id: ${response.request_id}` : '',
 		]
-			.filter(Boolean)
-			.join(' | ');
+			.filter(Boolean);
+		const description =
+			descriptionParts.length > 0
+				? descriptionParts.join(' | ')
+				: 'No additional detail provided by CoreClaw.';
 
 		throw new NodeApiError(this.getNode(), response as unknown as JsonObject, {
 			message: `CoreClaw error ${response.code}`,
@@ -88,6 +91,27 @@ export function unwrapCoreClawEnvelope(this: CoreClawContext, response: CoreClaw
 	}
 
 	return response.data;
+}
+
+function formatDetails(details: unknown): string {
+	if (details === undefined || details === null || details === '') return '';
+
+	if (Array.isArray(details)) {
+		return details.map(formatDetailValue).filter(Boolean).join('; ');
+	}
+
+	return formatDetailValue(details);
+}
+
+function formatDetailValue(value: unknown): string {
+	if (value === undefined || value === null) return '';
+	if (typeof value === 'string') return value;
+
+	try {
+		return JSON.stringify(value) || String(value);
+	} catch {
+		return String(value);
+	}
 }
 
 async function retryRead<T>(fn: () => Promise<T>): Promise<T> {

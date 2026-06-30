@@ -1,7 +1,17 @@
+jest.mock('n8n-workflow', () => ({
+	...jest.requireActual('n8n-workflow'),
+	sleep: jest.fn().mockResolvedValue(undefined),
+}));
+
+import { sleep } from 'n8n-workflow';
+
 import { CORECLAW_DEFAULT_TIMEOUT_MS } from '../constants';
-import { coreClawApiRequest, parseJsonParameter } from '../GenericFunctions';
+import { coreClawApiRequest, parseJsonParameter, splitCsv } from '../GenericFunctions';
 
 function createContext(response: unknown, credentials = {}) {
+	const httpRequestWithAuthentication =
+		typeof response === 'function' ? response : jest.fn().mockResolvedValue(response);
+
 	return {
 		getNode: () => ({ name: 'CoreClaw', type: 'n8n-nodes-coreclaw.coreClaw' }),
 		getCredentials: jest.fn().mockResolvedValue({
@@ -10,12 +20,16 @@ function createContext(response: unknown, credentials = {}) {
 			...credentials,
 		}),
 		helpers: {
-			httpRequestWithAuthentication: jest.fn().mockResolvedValue(response),
+			httpRequestWithAuthentication,
 		},
 	} as any;
 }
 
 describe('coreClawApiRequest', () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
+
 	it('exposes only the v2 object-argument request signature', () => {
 		expect(coreClawApiRequest.length).toBe(1);
 	});
@@ -94,6 +108,127 @@ describe('coreClawApiRequest', () => {
 			description: expect.stringContaining('request_id: req-1'),
 		});
 	});
+
+	it('does not retry failed requests by default', async () => {
+		const request = jest.fn().mockRejectedValue(new Error('network down'));
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, { method: 'GET', path: '/api/v2/users/account' }),
+		).rejects.toThrow('CoreClaw request failed');
+
+		expect(request).toHaveBeenCalledTimes(1);
+		expect(sleep).not.toHaveBeenCalled();
+	});
+
+	it('does not retry failed requests when retrySafe is false', async () => {
+		const request = jest.fn().mockRejectedValue(new Error('network down'));
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, {
+				method: 'GET',
+				path: '/api/v2/users/account',
+				retrySafe: false,
+			}),
+		).rejects.toThrow('CoreClaw request failed');
+
+		expect(request).toHaveBeenCalledTimes(1);
+		expect(sleep).not.toHaveBeenCalled();
+	});
+
+	it('retries retry-safe rate limited requests and returns a later success', async () => {
+		const request = jest
+			.fn()
+			.mockRejectedValueOnce({ message: 'rate limited', httpCode: 429 })
+			.mockResolvedValueOnce({ code: 0, data: { ok: true } });
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, {
+				method: 'GET',
+				path: '/api/v2/workers/runs/run-1',
+				retrySafe: true,
+			}),
+		).resolves.toEqual({ ok: true });
+
+		expect(request).toHaveBeenCalledTimes(2);
+		expect(sleep).toHaveBeenCalledTimes(1);
+	});
+
+	it('retries retry-safe 5xx requests and returns a later success', async () => {
+		const request = jest
+			.fn()
+			.mockRejectedValueOnce({ message: 'temporarily unavailable', httpCode: 503 })
+			.mockResolvedValueOnce({ code: 0, data: { ok: true } });
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, {
+				method: 'GET',
+				path: '/api/v2/workers/runs/run-1',
+				retrySafe: true,
+			}),
+		).resolves.toEqual({ ok: true });
+
+		expect(request).toHaveBeenCalledTimes(2);
+		expect(sleep).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not retry retry-safe 4xx requests other than rate limits', async () => {
+		const request = jest.fn().mockRejectedValue({ message: 'bad request', httpCode: 400 });
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, {
+				method: 'GET',
+				path: '/api/v2/workers/runs/run-1',
+				retrySafe: true,
+			}),
+		).rejects.toThrow('CoreClaw request failed');
+
+		expect(request).toHaveBeenCalledTimes(1);
+		expect(sleep).not.toHaveBeenCalled();
+	});
+
+	it('bounds retry-safe failures at five total attempts', async () => {
+		const request = jest.fn().mockRejectedValue({ message: 'server error', httpCode: 500 });
+		const context = createContext(request);
+
+		await expect(
+			coreClawApiRequest.call(context, {
+				method: 'GET',
+				path: '/api/v2/workers/runs/run-1',
+				retrySafe: true,
+			}),
+		).rejects.toThrow('CoreClaw request failed');
+
+		expect(request).toHaveBeenCalledTimes(5);
+		expect(sleep).toHaveBeenCalledTimes(4);
+	});
+
+	it('uses a fallback description when CoreClaw provides no error detail', async () => {
+		const context = createContext({ code: 99999 });
+
+		await expect(
+			coreClawApiRequest.call(context, { method: 'GET', path: '/api/v2/users/account' }),
+		).rejects.toMatchObject({
+			description: expect.stringContaining('No additional detail provided by CoreClaw.'),
+		});
+	});
+
+	it('includes serialized non-array details in envelope error descriptions', async () => {
+		const context = createContext({
+			code: 11000,
+			details: { field: 'x' },
+		});
+
+		await expect(
+			coreClawApiRequest.call(context, { method: 'GET', path: '/api/v2/users/account' }),
+		).rejects.toMatchObject({
+			description: expect.stringContaining('{"field":"x"}'),
+		});
+	});
 });
 
 describe('parseJsonParameter', () => {
@@ -125,5 +260,19 @@ describe('parseJsonParameter', () => {
 		expect(() => parseJsonParameter.call(context, '"coffee"', 'Input JSON', 0)).toThrow(
 			'Input JSON must parse to a JSON object or array',
 		);
+	});
+});
+
+describe('splitCsv', () => {
+	it('preserves comma-separated values after trimming surrounding whitespace', () => {
+		expect(splitCsv(' id,name , status ')).toEqual(['id', 'name', 'status']);
+	});
+
+	it('preserves internal whitespace inside values', () => {
+		expect(splitCsv('run id, worker name')).toEqual(['run id', 'worker name']);
+	});
+
+	it('drops empty comma segments', () => {
+		expect(splitCsv('id,, ,status')).toEqual(['id', 'status']);
 	});
 });
