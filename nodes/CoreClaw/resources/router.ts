@@ -7,7 +7,7 @@ import { getEndpointSpec } from './endpointSpecs';
 import { extractItems, nextOffset } from './pagination';
 import { compactBody, prepareRunWorkerBody } from './runInput';
 
-const RETURN_ALL_MAX_ROWS = Number.MAX_SAFE_INTEGER;
+const RETURN_ALL_MAX_ROWS = 10000;
 const PAGE_SIZE_LIMIT = 100;
 const ROUTER_NODE: INode = {
 	id: 'coreclaw-router',

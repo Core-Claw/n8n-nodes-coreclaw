@@ -106,4 +106,39 @@ describe('routeCoreClawOperation', () => {
 			qs: { offset: 100, limit: 100 },
 		});
 	});
+
+	it('stops returnAll after the 10000 row safety guard when pages stay full', async () => {
+		const fullPage = Array.from({ length: 100 }, (_, index) => ({ row: index }));
+		mockedRequest.mockImplementation(async () => {
+			if (mockedRequest.mock.calls.length > 100) {
+				throw new Error('returnAll pagination exceeded safety guard');
+			}
+
+			return { items: fullPage };
+		});
+
+		const context = {
+			getNode: () => ({ name: 'CoreClaw' }),
+			getNodeParameter: jest.fn((name: string, _itemIndex: number, defaultValue?: unknown) => {
+				const values: Record<string, unknown> = {
+					resource: 'worker',
+					operation: 'list',
+					returnAll: true,
+					offset: 0,
+				};
+				return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : defaultValue;
+			}),
+			helpers: {
+				returnJsonArray: jest.fn((rows: unknown[]) => rows.map((json) => ({ json }))),
+			},
+		};
+
+		const result = await routeCoreClawOperation.call(context as any, 0);
+
+		expect(result).toHaveLength(10000);
+		expect(mockedRequest).toHaveBeenCalledTimes(100);
+		expect(mockedRequest.mock.calls[99][0]).toMatchObject({
+			qs: { offset: 9900, limit: 100 },
+		});
+	});
 });
