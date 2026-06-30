@@ -20,7 +20,7 @@
 		"type": "git",
 		"url": "git+https://github.com/Core-Claw/n8n-nodes-coreclaw.git"
 	},
-		"scripts": {
+	"scripts": {
 		"build": "n8n-node build",
 		"build:watch": "tsc --watch",
 		"dev": "n8n-node dev",
@@ -28,7 +28,9 @@
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
-		"prepublishOnly": "n8n-node prerelease"
+		"prepublishOnly": "n8n-node prerelease",
+		"test": "jest --config jest.config.js",
+		"test:live": "set CORECLAW_LIVE_TESTS=1&& jest --config jest.config.js nodes/CoreClaw/__tests__/e2e.live.test.ts"
 	},
 	"engines": {
 		"node": ">=20.15"
@@ -52,9 +54,13 @@
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
+		"@types/jest": "^30.0.0",
 		"eslint": "9.32.0",
+		"jest": "^30.4.2",
+		"nock": "^14.0.16",
 		"prettier": "3.6.2",
 		"release-it": "^19.0.4",
+		"ts-jest": "^29.4.11",
 		"typescript": "5.9.2"
 	},
 	"peerDependencies": {
