@@ -56,7 +56,7 @@ const returnAllField = (operations: string[]): INodeProperties => ({
 			operation: operations,
 		},
 	},
-	description: 'Whether to return all matching records',
+	description: 'Whether to return all results or only up to a given limit',
 });
 
 const offsetField = (operations: string[]): INodeProperties => ({
@@ -84,7 +84,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 		minValue: 1,
 		maxValue: 100,
 	},
-	default: 20,
+	default: 50,
 	displayOptions: {
 		show: {
 			resource: ['worker'],
@@ -92,7 +92,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 			...(onlyWhenReturnAllIsFalse ? { returnAll: [false] } : {}),
 		},
 	},
-	description: 'Max number of records to return',
+	description: 'Max number of results to return',
 });
 
 const callbackUrlField = (operations: string[]): INodeProperties => ({
@@ -167,7 +167,7 @@ const filterKeysField = (operations: string[]): INodeProperties => ({
 			operation: operations,
 		},
 	},
-	description: 'Comma-separated result field keys to export. Leave empty to include all fields',
+	description: 'Comma-separated result field keys to export. Leave empty to include all fields.',
 	placeholder: 'title,price,url',
 });
 
@@ -184,10 +184,16 @@ export const workerOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'List',
-				value: 'list',
-				description: 'List CoreClaw API v2 workers owned by the account',
-				action: 'List workers',
+				name: 'Abort Last Run',
+				value: 'abortLastRun',
+				description: 'Abort the last run for a worker',
+				action: 'Abort worker last run',
+			},
+			{
+				name: 'Export Last Run Results',
+				value: 'exportLastRunResults',
+				description: 'Export results from the last run for a worker',
+				action: 'Export worker last run results',
 			},
 			{
 				name: 'Get',
@@ -202,28 +208,10 @@ export const workerOperations: INodeProperties[] = [
 				action: 'Get worker input schema',
 			},
 			{
-				name: 'Run',
-				value: 'run',
-				description: 'Run a CoreClaw API v2 worker',
-				action: 'Run worker',
-			},
-			{
 				name: 'Get Last Run',
 				value: 'getLastRun',
 				description: 'Get the last run for a worker',
 				action: 'Get worker last run',
-			},
-			{
-				name: 'Abort Last Run',
-				value: 'abortLastRun',
-				description: 'Abort the last run for a worker',
-				action: 'Abort worker last run',
-			},
-			{
-				name: 'Export Last Run Results',
-				value: 'exportLastRunResults',
-				description: 'Export results from the last run for a worker',
-				action: 'Export worker last run results',
 			},
 			{
 				name: 'Get Last Run Log',
@@ -232,10 +220,10 @@ export const workerOperations: INodeProperties[] = [
 				action: 'Get worker last run log',
 			},
 			{
-				name: 'Rerun Last Run',
-				value: 'rerunLastRun',
-				description: 'Rerun the last run for a worker',
-				action: 'Rerun worker last run',
+				name: 'List',
+				value: 'list',
+				description: 'List CoreClaw API v2 workers owned by the account',
+				action: 'List workers',
 			},
 			{
 				name: 'List Last Run Results',
@@ -243,6 +231,18 @@ export const workerOperations: INodeProperties[] = [
 				description: 'List results from the last run for a worker',
 				action: 'List worker last run results',
 			},
+			{
+				name: 'Rerun Last Run',
+				value: 'rerunLastRun',
+				description: 'Rerun the last run for a worker',
+				action: 'Rerun worker last run',
+			},
+			{
+				name: 'Run',
+				value: 'run',
+				description: 'Run a CoreClaw API v2 worker',
+				action: 'Run worker',
+			}
 		],
 		default: 'list',
 	},
@@ -277,7 +277,7 @@ export const workerFields: INodeProperties[] = [
 				operation: ['run'],
 			},
 		},
-		description: 'Worker script version. Leave empty to use the CoreClaw default',
+		description: 'Worker script version. Leave empty to use the CoreClaw default.',
 		placeholder: 'v1.2.3',
 	},
 	{
@@ -291,7 +291,7 @@ export const workerFields: INodeProperties[] = [
 				operation: ['run'],
 			},
 		},
-		description: 'Worker input parameters. CoreClaw wraps this as input.parameters.custom',
+		description: 'Worker input parameters. CoreClaw wraps this as input.parameters.custom.',
 		typeOptions: {
 			rows: 6,
 		},
@@ -307,7 +307,7 @@ export const workerFields: INodeProperties[] = [
 				operation: ['run'],
 			},
 		},
-		description: 'Full CoreClaw input object. Do not use together with Input JSON',
+		description: 'Full CoreClaw input object. Do not use together with Input JSON.',
 		typeOptions: {
 			rows: 6,
 		},

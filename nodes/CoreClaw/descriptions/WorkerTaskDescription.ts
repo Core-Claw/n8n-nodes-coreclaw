@@ -37,7 +37,7 @@ const returnAllField = (operations: string[]): INodeProperties => ({
 			operation: operations,
 		},
 	},
-	description: 'Whether to return all matching worker tasks',
+	description: 'Whether to return all results or only up to a given limit',
 });
 
 const offsetField = (operations: string[]): INodeProperties => ({
@@ -65,7 +65,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 		minValue: 1,
 		maxValue: 100,
 	},
-	default: 20,
+	default: 50,
 	displayOptions: {
 		show: {
 			resource: ['workerTask'],
@@ -73,7 +73,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 			...(onlyWhenReturnAllIsFalse ? { returnAll: [false] } : {}),
 		},
 	},
-	description: 'Max number of records to return',
+	description: 'Max number of results to return',
 });
 
 const callbackUrlField = (operations: string[]): INodeProperties => ({

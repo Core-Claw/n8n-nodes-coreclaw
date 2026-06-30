@@ -35,7 +35,7 @@ export const storeWorkerFields: INodeProperties[] = [
 				operation: ['list'],
 			},
 		},
-		description: 'Whether to return all matching store workers',
+		description: 'Whether to return all results or only up to a given limit',
 	},
 	{
 		displayName: 'Offset',
@@ -61,7 +61,7 @@ export const storeWorkerFields: INodeProperties[] = [
 			minValue: 1,
 			maxValue: 100,
 		},
-		default: 20,
+		default: 50,
 		displayOptions: {
 			show: {
 				resource: ['storeWorker'],
@@ -69,7 +69,7 @@ export const storeWorkerFields: INodeProperties[] = [
 				returnAll: [false],
 			},
 		},
-		description: 'Max number of store workers to return',
+		description: 'Max number of results to return',
 	},
 	{
 		displayName: 'Keyword',

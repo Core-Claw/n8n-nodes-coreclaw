@@ -4,11 +4,24 @@ jest.mock('../GenericFunctions', () => ({
 }));
 
 import { coreClawApiRequest } from '../GenericFunctions';
+import type { IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { buildRequestFromSpec, replacePathParams, routeCoreClawOperation } from '../resources/router';
 import { getEndpointSpec } from '../resources/endpointSpecs';
 
 const mockedRequest = coreClawApiRequest as jest.MockedFunction<typeof coreClawApiRequest>;
+
+function createRouteContext(values: Record<string, unknown>): IExecuteFunctions {
+	return {
+		getNode: () => ({ name: 'CoreClaw' }),
+		getNodeParameter: jest.fn((name: string, _itemIndex: number, defaultValue?: unknown) =>
+			Object.prototype.hasOwnProperty.call(values, name) ? values[name] : defaultValue,
+		),
+		helpers: {
+			returnJsonArray: jest.fn((rows: unknown[]) => rows.map((json) => ({ json }))),
+		},
+	} as unknown as IExecuteFunctions;
+}
 
 afterEach(() => {
 	mockedRequest.mockReset();
@@ -79,23 +92,14 @@ describe('routeCoreClawOperation', () => {
 			.mockResolvedValueOnce({ items: firstPage })
 			.mockResolvedValueOnce({ items: secondPage });
 
-		const context = {
-			getNode: () => ({ name: 'CoreClaw' }),
-			getNodeParameter: jest.fn((name: string, _itemIndex: number, defaultValue?: unknown) => {
-				const values: Record<string, unknown> = {
-					resource: 'worker',
-					operation: 'list',
-					returnAll: true,
-					offset: 0,
-				};
-				return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : defaultValue;
-			}),
-			helpers: {
-				returnJsonArray: jest.fn((rows: unknown[]) => rows.map((json) => ({ json }))),
-			},
-		};
+		const context = createRouteContext({
+			resource: 'worker',
+			operation: 'list',
+			returnAll: true,
+			offset: 0,
+		});
 
-		const result = await routeCoreClawOperation.call(context as any, 0);
+		const result = await routeCoreClawOperation.call(context, 0);
 
 		expect(result).toHaveLength(125);
 		expect(mockedRequest).toHaveBeenCalledTimes(2);
@@ -117,23 +121,14 @@ describe('routeCoreClawOperation', () => {
 			return { items: fullPage };
 		});
 
-		const context = {
-			getNode: () => ({ name: 'CoreClaw' }),
-			getNodeParameter: jest.fn((name: string, _itemIndex: number, defaultValue?: unknown) => {
-				const values: Record<string, unknown> = {
-					resource: 'worker',
-					operation: 'list',
-					returnAll: true,
-					offset: 0,
-				};
-				return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : defaultValue;
-			}),
-			helpers: {
-				returnJsonArray: jest.fn((rows: unknown[]) => rows.map((json) => ({ json }))),
-			},
-		};
+		const context = createRouteContext({
+			resource: 'worker',
+			operation: 'list',
+			returnAll: true,
+			offset: 0,
+		});
 
-		const result = await routeCoreClawOperation.call(context as any, 0);
+		const result = await routeCoreClawOperation.call(context, 0);
 
 		expect(result).toHaveLength(10000);
 		expect(mockedRequest).toHaveBeenCalledTimes(100);

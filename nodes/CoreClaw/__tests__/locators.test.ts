@@ -2,7 +2,11 @@ jest.mock('../GenericFunctions', () => ({
 	coreClawApiRequest: jest.fn(),
 }));
 
+/* eslint-disable n8n-nodes-base/node-param-description-lowercase-first-char */
+/* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
+
 import { coreClawApiRequest } from '../GenericFunctions';
+import type { ILoadOptionsFunctions } from 'n8n-workflow';
 import {
 	formatRunOption,
 	formatWorkerOption,
@@ -12,6 +16,7 @@ import {
 } from '../resources/locators';
 
 const mockedRequest = coreClawApiRequest as jest.MockedFunction<typeof coreClawApiRequest>;
+const loadOptionsContext = {} as unknown as ILoadOptionsFunctions;
 
 afterEach(() => {
 	mockedRequest.mockReset();
@@ -74,7 +79,7 @@ describe('locatorMethods', () => {
 			],
 		});
 
-		await expect(locatorMethods.searchWorkers.call({} as any, 'coffee')).resolves.toEqual({
+		await expect(locatorMethods.searchWorkers.call(loadOptionsContext, 'coffee')).resolves.toEqual({
 			results: [
 				{
 					name: 'Demo Worker (demo-worker)',
@@ -146,7 +151,7 @@ describe('locatorMethods', () => {
 		async ({ method, path, qs, data, results }) => {
 			mockedRequest.mockResolvedValueOnce(data);
 
-			await expect(locatorMethods[method].call({} as any, 'coffee')).resolves.toEqual({ results });
+			await expect(locatorMethods[method].call(loadOptionsContext, 'coffee')).resolves.toEqual({ results });
 			expect(mockedRequest).toHaveBeenCalledTimes(1);
 			expect(mockedRequest.mock.calls[0][0]).toEqual({
 				method: 'GET',

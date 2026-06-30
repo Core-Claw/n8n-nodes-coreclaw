@@ -38,7 +38,7 @@ const returnAllField = (operations: string[]): INodeProperties => ({
 			operation: operations,
 		},
 	},
-	description: 'Whether to return all matching records',
+	description: 'Whether to return all results or only up to a given limit',
 });
 
 const offsetField = (operations: string[]): INodeProperties => ({
@@ -66,7 +66,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 		minValue: 1,
 		maxValue: 100,
 	},
-	default: 20,
+	default: 50,
 	displayOptions: {
 		show: {
 			resource: ['workerRun'],
@@ -74,7 +74,7 @@ const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): IN
 			...(onlyWhenReturnAllIsFalse ? { returnAll: [false] } : {}),
 		},
 	},
-	description: 'Max number of records to return',
+	description: 'Max number of results to return',
 });
 
 const callbackUrlField = (operations: string[]): INodeProperties => ({
@@ -149,7 +149,7 @@ const filterKeysField = (operations: string[]): INodeProperties => ({
 			operation: operations,
 		},
 	},
-	description: 'Comma-separated result field keys to export. Leave empty to include all fields',
+	description: 'Comma-separated result field keys to export. Leave empty to include all fields.',
 	placeholder: 'title,price,url',
 });
 
@@ -166,16 +166,10 @@ export const workerRunOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'List',
-				value: 'list',
-				description: 'List CoreClaw API v2 worker runs',
-				action: 'List worker runs',
-			},
-			{
-				name: 'Get Last',
-				value: 'getLast',
-				description: 'Get the last worker run',
-				action: 'Get last worker run',
+				name: 'Abort',
+				value: 'abort',
+				description: 'Abort a worker run',
+				action: 'Abort worker run',
 			},
 			{
 				name: 'Abort Last',
@@ -190,22 +184,10 @@ export const workerRunOperations: INodeProperties[] = [
 				action: 'Export last worker run results',
 			},
 			{
-				name: 'Get Last Log',
-				value: 'getLastLog',
-				description: 'Get logs from the last worker run',
-				action: 'Get last worker run log',
-			},
-			{
-				name: 'Rerun Last',
-				value: 'rerunLast',
-				description: 'Rerun the last worker run',
-				action: 'Rerun last worker run',
-			},
-			{
-				name: 'List Last Results',
-				value: 'listLastResults',
-				description: 'List results from the last worker run',
-				action: 'List last worker run results',
+				name: 'Export Results',
+				value: 'exportResults',
+				description: 'Export results from a worker run',
+				action: 'Export worker run results',
 			},
 			{
 				name: 'Get',
@@ -214,10 +196,16 @@ export const workerRunOperations: INodeProperties[] = [
 				action: 'Get worker run',
 			},
 			{
-				name: 'Abort',
-				value: 'abort',
-				description: 'Abort a worker run',
-				action: 'Abort worker run',
+				name: 'Get Last',
+				value: 'getLast',
+				description: 'Get the last worker run',
+				action: 'Get last worker run',
+			},
+			{
+				name: 'Get Last Log',
+				value: 'getLastLog',
+				description: 'Get logs from the last worker run',
+				action: 'Get last worker run log',
 			},
 			{
 				name: 'Get Log',
@@ -226,10 +214,16 @@ export const workerRunOperations: INodeProperties[] = [
 				action: 'Get worker run log',
 			},
 			{
-				name: 'Rerun',
-				value: 'rerun',
-				description: 'Rerun a worker run',
-				action: 'Rerun worker run',
+				name: 'List',
+				value: 'list',
+				description: 'List CoreClaw API v2 worker runs',
+				action: 'List worker runs',
+			},
+			{
+				name: 'List Last Results',
+				value: 'listLastResults',
+				description: 'List results from the last worker run',
+				action: 'List last worker run results',
 			},
 			{
 				name: 'List Results',
@@ -238,11 +232,17 @@ export const workerRunOperations: INodeProperties[] = [
 				action: 'List worker run results',
 			},
 			{
-				name: 'Export Results',
-				value: 'exportResults',
-				description: 'Export results from a worker run',
-				action: 'Export worker run results',
+				name: 'Rerun',
+				value: 'rerun',
+				description: 'Rerun a worker run',
+				action: 'Rerun worker run',
 			},
+			{
+				name: 'Rerun Last',
+				value: 'rerunLast',
+				description: 'Rerun the last worker run',
+				action: 'Rerun last worker run',
+			}
 		],
 		default: 'list',
 	},
@@ -265,12 +265,12 @@ export const workerRunFields: INodeProperties[] = [
 			},
 		},
 		options: [
+			{ name: 'Aborting', value: 'aborting' },
 			{ name: 'All', value: '' },
+			{ name: 'Failed', value: 'failed' },
 			{ name: 'Ready', value: 'ready' },
 			{ name: 'Running', value: 'running' },
 			{ name: 'Succeeded', value: 'succeeded' },
-			{ name: 'Failed', value: 'failed' },
-			{ name: 'Aborting', value: 'aborting' },
 		],
 		description: 'Filter by worker run status',
 	},

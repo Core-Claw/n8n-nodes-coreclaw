@@ -1,3 +1,6 @@
+/* eslint-disable n8n-nodes-base/node-param-display-name-not-first-position */
+/* eslint-disable n8n-nodes-base/node-param-type-options-missing-from-limit */
+
 import type { CoreClawEndpointSpec, CoreClawParamSpec } from '../types';
 
 const offsetParam = (): CoreClawParamSpec => ({
@@ -14,8 +17,8 @@ const limitParam = (): CoreClawParamSpec => ({
 	displayName: 'Limit',
 	location: 'query',
 	type: 'number',
-	default: 20,
-	description: 'Result limit. Must be between 1 and 100.',
+	default: 50,
+	description: 'Max number of results to return',
 });
 
 const bodyOffsetParam = (): CoreClawParamSpec => ({ ...offsetParam(), location: 'body' });
@@ -27,6 +30,7 @@ const keywordParam = (description: string): CoreClawParamSpec => ({
 	displayName: 'Keyword',
 	location: 'query',
 	type: 'string',
+	default: '',
 	description,
 });
 
@@ -35,8 +39,9 @@ const workerIdPathParam = (): CoreClawParamSpec => ({
 	displayName: 'Worker ID',
 	location: 'path',
 	type: 'string',
+	default: '',
 	required: true,
-	description: 'Worker slug or owner path, such as demo-worker or owner~demo-worker.',
+	description: 'Worker slug or owner path, such as demo-worker or owner~demo-worker',
 });
 
 const runIdPathParam = (): CoreClawParamSpec => ({
@@ -44,8 +49,9 @@ const runIdPathParam = (): CoreClawParamSpec => ({
 	displayName: 'Run ID',
 	location: 'path',
 	type: 'string',
+	default: '',
 	required: true,
-	description: 'Worker run identifier returned by run or list operations.',
+	description: 'Worker run identifier returned by run or list operations',
 });
 
 const workerTaskIdPathParam = (): CoreClawParamSpec => ({
@@ -53,8 +59,9 @@ const workerTaskIdPathParam = (): CoreClawParamSpec => ({
 	displayName: 'Worker Task ID',
 	location: 'path',
 	type: 'string',
+	default: '',
 	required: true,
-	description: 'Saved worker task identifier returned by the list worker tasks operation.',
+	description: 'Saved worker task identifier returned by the list worker tasks operation',
 });
 
 const isAsyncParam = (): CoreClawParamSpec => ({
@@ -63,7 +70,7 @@ const isAsyncParam = (): CoreClawParamSpec => ({
 	location: 'body',
 	type: 'boolean',
 	default: true,
-	description: 'Whether CoreClaw should run asynchronously.',
+	description: 'Whether CoreClaw should run asynchronously',
 });
 
 const callbackUrlParam = (): CoreClawParamSpec => ({
@@ -71,7 +78,8 @@ const callbackUrlParam = (): CoreClawParamSpec => ({
 	displayName: 'Callback URL',
 	location: 'body',
 	type: 'string',
-	description: 'Optional URL CoreClaw calls with run status updates.',
+	default: '',
+	description: 'Optional URL CoreClaw calls with run status updates',
 });
 
 const formatParam = (): CoreClawParamSpec => ({
@@ -84,7 +92,7 @@ const formatParam = (): CoreClawParamSpec => ({
 		{ name: 'CSV', value: 'csv' },
 		{ name: 'JSON', value: 'json' },
 	],
-	description: 'Export file format.',
+	description: 'Export file format',
 });
 
 const filterKeysParam = (): CoreClawParamSpec => ({
@@ -92,6 +100,7 @@ const filterKeysParam = (): CoreClawParamSpec => ({
 	displayName: 'Filter Keys',
 	location: 'query',
 	type: 'string',
+	default: '',
 	description: 'Comma-separated field keys to export. Leave empty to include all fields.',
 });
 
@@ -129,7 +138,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 					{ name: 'English', value: 'en' },
 					{ name: 'Chinese', value: 'zh' },
 				],
-				description: 'Region display language.',
+				description: 'Region display language',
 			},
 		],
 	},
@@ -173,13 +182,15 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 				displayName: 'Worker ID',
 				location: 'query',
 				type: 'string',
-				description: 'Filter by worker slug or owner path.',
+				default: '',
+				description: 'Filter by worker slug or owner path',
 			},
 			{
 				name: 'status',
 				displayName: 'Status',
 				location: 'query',
 				type: 'string',
+				default: '',
 				options: [
 					{ name: 'Ready', value: 'ready' },
 					{ name: 'Running', value: 'running' },
@@ -187,7 +198,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 					{ name: 'Failed', value: 'failed' },
 					{ name: 'Aborting', value: 'aborting' },
 				],
-				description: 'Filter by run status.',
+				description: 'Filter by run status',
 			},
 		],
 	},
@@ -335,7 +346,8 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 				displayName: 'Worker ID',
 				location: 'query',
 				type: 'string',
-				description: 'Filter by worker slug or owner path.',
+				default: '',
+				description: 'Filter by worker slug or owner path',
 			},
 			keywordParam('Keyword for task title or slug.'),
 		],
@@ -399,6 +411,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 				displayName: 'Version',
 				location: 'body',
 				type: 'string',
+				default: '',
 				description: 'Worker script version. Leave empty to use backend default.',
 			},
 			{
@@ -406,6 +419,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 				displayName: 'Input JSON',
 				location: 'body',
 				type: 'json',
+				default: '',
 				description: 'Worker business input JSON. Wrapped as input.parameters.custom.',
 			},
 			{
@@ -413,6 +427,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 				displayName: 'Raw Input JSON',
 				location: 'body',
 				type: 'json',
+				default: '',
 				description: 'Advanced full CoreClaw input object. Do not combine with Input JSON.',
 			},
 			...runBodyParams(),

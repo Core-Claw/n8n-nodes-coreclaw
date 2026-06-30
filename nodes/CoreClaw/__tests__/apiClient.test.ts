@@ -3,6 +3,7 @@ jest.mock('n8n-workflow', () => ({
 	sleep: jest.fn().mockResolvedValue(undefined),
 }));
 
+import type { IExecuteFunctions } from 'n8n-workflow';
 import { sleep } from 'n8n-workflow';
 
 import { CoreClawApi } from '../../../credentials/CoreClawApi.credentials';
@@ -23,7 +24,11 @@ function createContext(response: unknown, credentials = {}) {
 		helpers: {
 			httpRequestWithAuthentication,
 		},
-	} as any;
+	} as unknown as IExecuteFunctions;
+}
+
+function createJsonContext(): IExecuteFunctions {
+	return { getNode: () => ({ name: 'CoreClaw' }) } as unknown as IExecuteFunctions;
 }
 
 describe('coreClawApiRequest', () => {
@@ -234,21 +239,21 @@ describe('coreClawApiRequest', () => {
 
 describe('parseJsonParameter', () => {
 	it('accepts object values', () => {
-		const context = { getNode: () => ({ name: 'CoreClaw' }) } as any;
+		const context = createJsonContext();
 		expect(parseJsonParameter.call(context, { keyword: 'coffee' }, 'Input JSON', 0)).toEqual({
 			keyword: 'coffee',
 		});
 	});
 
 	it('parses JSON strings', () => {
-		const context = { getNode: () => ({ name: 'CoreClaw' }) } as any;
+		const context = createJsonContext();
 		expect(parseJsonParameter.call(context, '{"keyword":"coffee"}', 'Input JSON', 0)).toEqual({
 			keyword: 'coffee',
 		});
 	});
 
 	it('rejects invalid JSON strings', () => {
-		const context = { getNode: () => ({ name: 'CoreClaw' }) } as any;
+		const context = createJsonContext();
 
 		expect(() => parseJsonParameter.call(context, '{"keyword":', 'Input JSON', 0)).toThrow(
 			'Input JSON is not valid JSON',
@@ -256,7 +261,7 @@ describe('parseJsonParameter', () => {
 	});
 
 	it('rejects primitive JSON values', () => {
-		const context = { getNode: () => ({ name: 'CoreClaw' }) } as any;
+		const context = createJsonContext();
 
 		expect(() => parseJsonParameter.call(context, '"coffee"', 'Input JSON', 0)).toThrow(
 			'Input JSON must parse to a JSON object or array',
