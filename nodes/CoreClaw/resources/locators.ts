@@ -8,7 +8,7 @@ export function normalizeList(data: unknown): IDataObject[] {
 }
 
 export function formatWorkerOption(worker: IDataObject) {
-	const value = String(worker.path || worker.slug || worker.worker_id || worker.id || '');
+	const value = String(worker.path || worker.slug || worker.worker_id || worker.id || '').trim();
 	const title = String(worker.title || worker.name || value || '(unnamed worker)');
 	const description = worker.description ? String(worker.description) : undefined;
 
@@ -16,12 +16,12 @@ export function formatWorkerOption(worker: IDataObject) {
 		name: value && title !== value ? `${title} (${value})` : title,
 		value,
 		description,
-		url: value ? `https://coreclaw.com/store/${value}` : undefined,
+		url: value ? `https://coreclaw.com/store/${encodeURIComponent(value)}` : undefined,
 	};
 }
 
 export function formatWorkerTaskOption(task: IDataObject) {
-	const value = String(task.worker_task_id || task.task_id || task.slug || task.id || '');
+	const value = String(task.worker_task_id || task.task_id || task.slug || task.id || '').trim();
 	const title = String(task.title || task.name || value || '(unnamed task)');
 	const description = task.worker_id ? String(task.worker_id) : undefined;
 
@@ -33,7 +33,7 @@ export function formatWorkerTaskOption(task: IDataObject) {
 }
 
 export function formatRunOption(run: IDataObject) {
-	const value = String(run.run_id || run.run_slug || run.id || '');
+	const value = String(run.run_id || run.run_slug || run.id || '').trim();
 	const status = String(run.run_status || run.status || 'unknown');
 	const worker = String(run.worker_id || run.worker_slug || run.worker_name || '');
 
