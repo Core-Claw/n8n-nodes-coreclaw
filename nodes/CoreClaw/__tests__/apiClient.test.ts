@@ -3,11 +3,12 @@ jest.mock('n8n-workflow', () => ({
 	sleep: jest.fn().mockResolvedValue(undefined),
 }));
 
-import type { IExecuteFunctions } from 'n8n-workflow';
+import type { ICredentialTestFunctions, IExecuteFunctions, INodeType } from 'n8n-workflow';
 import { sleep } from 'n8n-workflow';
 
 import { CoreClawApi } from '../../../credentials/CoreClawApi.credentials';
 import { CORECLAW_DEFAULT_TIMEOUT_MS } from '../constants';
+import { CoreClaw } from '../CoreClaw.node';
 import { coreClawApiRequest, parseJsonParameter, splitCsv } from '../GenericFunctions';
 
 function createContext(response: unknown, credentials = {}) {
@@ -297,6 +298,50 @@ describe('CoreClawApi credentials', () => {
 		expect(credential.authenticate.properties.headers).toMatchObject({
 			'api-key': '={{$credentials.apiKey}}',
 			Authorization: '=Bearer {{$credentials.apiKey}}',
+		});
+	});
+
+	it('uses a custom action-node credential test that validates the CoreClaw envelope', () => {
+		const credential = new CoreClaw().description.credentials?.[0];
+
+		expect(credential?.testedBy).toBe('coreClawApiCredentialTest');
+	});
+
+	it('passes the custom credential test only when the CoreClaw envelope code is zero', async () => {
+		const node = new CoreClaw() as INodeType;
+		const test = node.methods?.credentialTest?.coreClawApiCredentialTest;
+		const httpRequest = jest.fn().mockResolvedValueOnce({
+			code: 12001,
+			message: 'authentication required',
+			request_id: 'req-1',
+			details: ['bad token'],
+		});
+		const context = {
+			helpers: { httpRequest },
+		} as unknown as ICredentialTestFunctions;
+
+		await expect(
+			test?.call(context, {
+				id: 'cred-1',
+				name: 'CoreClaw',
+				type: 'coreClawApi',
+				data: {
+					apiKey: 'bad-key',
+					baseUrl: 'https://openapi.coreclaw.com/',
+				},
+			}),
+		).resolves.toEqual({
+			status: 'Error',
+			message: expect.stringContaining('CoreClaw error 12001'),
+		});
+		expect(httpRequest).toHaveBeenCalledWith({
+			method: 'GET',
+			url: 'https://openapi.coreclaw.com/api/v2/users/account',
+			json: true,
+			headers: expect.objectContaining({
+				'api-key': 'bad-key',
+				Authorization: 'Bearer bad-key',
+			}),
 		});
 	});
 });

@@ -15,6 +15,11 @@ import {
 import type { CoreClawEnvelope, CoreClawRequestArgs } from './types';
 
 type CoreClawContext = IExecuteFunctions | ILoadOptionsFunctions;
+export interface CoreClawApiErrorDetails {
+	coreclawCode?: number;
+	requestId?: string;
+	details?: unknown;
+}
 
 export async function coreClawApiRequest(
 	this: CoreClawContext,
@@ -83,11 +88,17 @@ export function unwrapCoreClawEnvelope(this: CoreClawContext, response: CoreClaw
 				? descriptionParts.join(' | ')
 				: 'No additional detail provided by CoreClaw.';
 
-		throw new NodeApiError(this.getNode(), response as unknown as JsonObject, {
+		const error = new NodeApiError(this.getNode(), response as unknown as JsonObject, {
 			message: `CoreClaw error ${response.code}`,
 			description,
 			httpCode: String(response.code),
 		});
+		Object.assign(error, {
+			coreclawCode: response.code,
+			requestId: response.request_id,
+			details: response.details,
+		} satisfies CoreClawApiErrorDetails);
+		throw error;
 	}
 
 	return response.data;

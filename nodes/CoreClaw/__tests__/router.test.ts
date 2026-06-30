@@ -69,6 +69,23 @@ describe('router request building', () => {
 		});
 	});
 
+	it('maps raw worker input without sending the input json default', () => {
+		const spec = getEndpointSpec('worker', 'run');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			workerId: 'demo',
+			input_json: '',
+			raw_input_json: { parameters: { custom: { keyword: 'coffee' } } },
+			is_async: true,
+		});
+
+		expect(request.body).toEqual({
+			input: { parameters: { custom: { keyword: 'coffee' } } },
+			is_async: true,
+		});
+	});
+
 	it('throws before building a path when a required path parameter is blank', () => {
 		const spec = getEndpointSpec('worker', 'run');
 		expect(spec).toBeDefined();
@@ -85,6 +102,68 @@ describe('router request building', () => {
 });
 
 describe('routeCoreClawOperation', () => {
+	it('polls a worker run until terminal status when wait for finish is enabled', async () => {
+		mockedRequest
+			.mockResolvedValueOnce({ run_slug: 'run-1' })
+			.mockResolvedValueOnce({ slug: 'run-1', status: 'running' })
+			.mockResolvedValueOnce({ slug: 'run-1', status: 'succeeded', results: 2 });
+
+		const context = createRouteContext({
+			resource: 'worker',
+			operation: 'run',
+			workerId: 'demo',
+			input_json: { keyword: 'coffee' },
+			is_async: true,
+			offset: 0,
+			limit: 50,
+			waitForFinish: true,
+		});
+
+		const result = await routeCoreClawOperation.call(context, 0);
+
+		expect(result).toEqual([{ json: { slug: 'run-1', status: 'succeeded', results: 2 } }]);
+		expect(mockedRequest).toHaveBeenCalledTimes(3);
+		expect(mockedRequest.mock.calls[1][0]).toMatchObject({
+			method: 'GET',
+			path: '/api/v2/worker-runs/run-1',
+			retrySafe: true,
+		});
+		expect(mockedRequest.mock.calls[2][0]).toMatchObject({
+			method: 'GET',
+			path: '/api/v2/worker-runs/run-1',
+			retrySafe: true,
+		});
+	});
+
+	it('runs with raw input only through the node parameter defaults', async () => {
+		mockedRequest.mockResolvedValueOnce({ run_slug: 'run-1' });
+
+		const context = createRouteContext({
+			resource: 'worker',
+			operation: 'run',
+			workerId: 'demo',
+			input_json: '',
+			raw_input_json: { parameters: { custom: { keyword: 'tea' } } },
+			is_async: true,
+			offset: 0,
+			limit: 50,
+			waitForFinish: false,
+		});
+
+		await routeCoreClawOperation.call(context, 0);
+
+		expect(mockedRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				body: {
+					input: { parameters: { custom: { keyword: 'tea' } } },
+					is_async: true,
+					offset: 0,
+					limit: 50,
+				},
+			}),
+		);
+	});
+
 	it('fetches beyond the hidden default limit when returnAll pages are full', async () => {
 		const firstPage = Array.from({ length: 100 }, (_, index) => ({ row: index }));
 		const secondPage = Array.from({ length: 25 }, (_, index) => ({ row: index + 100 }));

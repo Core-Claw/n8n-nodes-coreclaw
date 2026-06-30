@@ -90,7 +90,9 @@ Worker, worker task, and worker run fields use resource locators where useful. Y
 
 Use one input mode per run. If both are set, the node fails before making a request.
 
-Run, rerun, and worker task run operations support `callback_url`, `is_async`, `offset`, and `limit` where the CoreClaw API supports them. For completion handling, chain a later **Get** operation or use **CoreClaw Trigger** with `callback_url`.
+Run, rerun, and worker task run operations support `callback_url`, `is_async`, `offset`, and `limit` where the CoreClaw API supports them.
+
+Enable **Wait for Finish** to poll the returned run through **Get Worker Run Detail** until it reaches a terminal status. For long jobs or event-driven workflows, keep asynchronous mode and use **CoreClaw Trigger** with `callback_url`.
 
 ## CoreClaw Trigger
 

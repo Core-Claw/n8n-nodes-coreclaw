@@ -284,7 +284,7 @@ export const workerFields: INodeProperties[] = [
 		displayName: 'Input JSON',
 		name: 'input_json',
 		type: 'json',
-		default: '{}',
+		default: '',
 		displayOptions: {
 			show: {
 				resource: ['worker'],
