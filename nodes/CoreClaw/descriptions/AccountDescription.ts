@@ -15,7 +15,7 @@ export const accountOperations: INodeProperties[] = [
 			{
 				name: 'Get Info',
 				value: 'getInfo',
-				description: 'Get account info — balance, traffic usage, plan expiry',
+				description: 'Get CoreClaw API v2 account balance, traffic usage, and plan data',
 				action: 'Get account info',
 			},
 		],
