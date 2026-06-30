@@ -1,7 +1,7 @@
 {
 	"name": "n8n-nodes-coreclaw",
 	"version": "0.1.1",
-	"description": "n8n community node for CoreClaw — search the scraper marketplace, run scrapers, fetch results, and manage runs from your workflows",
+	"description": "n8n community nodes for CoreClaw API v2 workers, worker runs, saved tasks, results, exports, logs, account data, and run callbacks",
 	"license": "MIT",
 	"homepage": "https://github.com/Core-Claw/n8n-nodes-coreclaw",
 	"keywords": [
@@ -49,7 +49,8 @@
 			"dist/credentials/CoreClawApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/CoreClaw/CoreClaw.node.js"
+			"dist/nodes/CoreClaw/CoreClaw.node.js",
+			"dist/nodes/CoreClawTrigger/CoreClawTrigger.node.js"
 		]
 	},
 	"devDependencies": {
