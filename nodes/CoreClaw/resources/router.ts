@@ -1,4 +1,4 @@
-import type { IDataObject, IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import type { IDataObject, IExecuteFunctions, INode, INodeExecutionData } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import { coreClawApiRequest, parseJsonParameter } from '../GenericFunctions';
@@ -7,6 +7,17 @@ import { getEndpointSpec } from './endpointSpecs';
 import { extractItems, nextOffset } from './pagination';
 import { compactBody, prepareRunWorkerBody } from './runInput';
 
+const RETURN_ALL_MAX_ROWS = Number.MAX_SAFE_INTEGER;
+const PAGE_SIZE_LIMIT = 100;
+const ROUTER_NODE: INode = {
+	id: 'coreclaw-router',
+	name: 'CoreClaw',
+	type: 'n8n-nodes-coreclaw.coreClaw',
+	typeVersion: 1,
+	position: [0, 0],
+	parameters: {},
+};
+
 export function replacePathParams(path: string, params: IDataObject): string {
 	return path.replace(/\{([^}]+)\}/g, (_, name: string) => encodeURIComponent(String(params[name] ?? '')));
 }
@@ -14,6 +25,7 @@ export function replacePathParams(path: string, params: IDataObject): string {
 export function buildRequestFromSpec(
 	spec: CoreClawEndpointSpec,
 	params: IDataObject,
+	node: INode = ROUTER_NODE,
 ): CoreClawRequestArgs {
 	const pathParams: IDataObject = {};
 	const qs: IDataObject = {};
@@ -21,7 +33,10 @@ export function buildRequestFromSpec(
 
 	for (const param of spec.params) {
 		const value = params[param.name];
-		if (value === undefined || value === null || value === '') continue;
+		if (param.location === 'path' && param.required && isBlank(value)) {
+			throw new NodeOperationError(node, `${param.displayName} is required`);
+		}
+		if (isBlank(value)) continue;
 
 		if (param.location === 'path') pathParams[param.name] = value;
 		if (param.location === 'query') qs[param.name] = value;
@@ -58,17 +73,18 @@ export async function routeCoreClawOperation(
 
 	const params = collectParams.call(this, spec, itemIndex);
 	const returnAll = spec.supportsReturnAll && (this.getNodeParameter('returnAll', itemIndex, false) as boolean);
-	const limit = spec.supportsReturnAll
-		? (this.getNodeParameter('limit', itemIndex, 20) as number)
-		: undefined;
 
 	const data = returnAll
-		? await requestAllPages.call(this, spec, params, limit ?? 20)
-		: await coreClawApiRequest.call(this, buildRequestFromSpec(spec, params));
+		? await requestAllPages.call(this, spec, params, RETURN_ALL_MAX_ROWS)
+		: await coreClawApiRequest.call(this, buildRequestFromSpec(spec, params, this.getNode()));
 
 	const outputRows = spec.returnsList ? extractItems(data) : undefined;
 	if (outputRows) return this.helpers.returnJsonArray(outputRows);
 	return [{ json: (data as IDataObject) ?? {} }];
+}
+
+function isBlank(value: unknown): boolean {
+	return value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
 }
 
 function collectParams(this: IExecuteFunctions, spec: CoreClawEndpointSpec, itemIndex: number): IDataObject {
@@ -105,13 +121,13 @@ async function requestAllPages(
 		const request = buildRequestFromSpec(spec, {
 			...params,
 			offset,
-			limit: Math.min(100, maxRows - rows.length),
-		});
+			limit: Math.min(PAGE_SIZE_LIMIT, maxRows - rows.length),
+		}, this.getNode());
 		const data = await coreClawApiRequest.call(this, request);
 		const pageRows = extractItems(data);
 		if (!pageRows || pageRows.length === 0) break;
 		rows.push(...pageRows);
-		if (pageRows.length < Number(request.qs?.limit ?? request.body?.limit ?? 100)) break;
+		if (pageRows.length < Number(request.qs?.limit ?? request.body?.limit ?? PAGE_SIZE_LIMIT)) break;
 		offset = nextOffset(offset, pageRows);
 	}
 

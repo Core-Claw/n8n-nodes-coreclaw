@@ -1,5 +1,18 @@
-import { buildRequestFromSpec, replacePathParams } from '../resources/router';
+jest.mock('../GenericFunctions', () => ({
+	coreClawApiRequest: jest.fn(),
+	parseJsonParameter: jest.requireActual('../GenericFunctions').parseJsonParameter,
+}));
+
+import { coreClawApiRequest } from '../GenericFunctions';
+import { NodeOperationError } from 'n8n-workflow';
+import { buildRequestFromSpec, replacePathParams, routeCoreClawOperation } from '../resources/router';
 import { getEndpointSpec } from '../resources/endpointSpecs';
+
+const mockedRequest = coreClawApiRequest as jest.MockedFunction<typeof coreClawApiRequest>;
+
+afterEach(() => {
+	mockedRequest.mockReset();
+});
 
 describe('router request building', () => {
 	it('replaces path parameters using encoded values', () => {
@@ -40,6 +53,57 @@ describe('router request building', () => {
 		expect(request.body).toEqual({
 			input: { parameters: { custom: { keyword: 'coffee' } } },
 			is_async: true,
+		});
+	});
+
+	it('throws before building a path when a required path parameter is blank', () => {
+		const spec = getEndpointSpec('worker', 'run');
+		expect(spec).toBeDefined();
+
+		const buildRequest = () =>
+			buildRequestFromSpec(spec!, {
+				workerId: '   ',
+				input_json: { keyword: 'coffee' },
+			});
+
+		expect(buildRequest).toThrow(NodeOperationError);
+		expect(buildRequest).toThrow('Worker ID is required');
+	});
+});
+
+describe('routeCoreClawOperation', () => {
+	it('fetches beyond the hidden default limit when returnAll pages are full', async () => {
+		const firstPage = Array.from({ length: 100 }, (_, index) => ({ row: index }));
+		const secondPage = Array.from({ length: 25 }, (_, index) => ({ row: index + 100 }));
+		mockedRequest
+			.mockResolvedValueOnce({ items: firstPage })
+			.mockResolvedValueOnce({ items: secondPage });
+
+		const context = {
+			getNode: () => ({ name: 'CoreClaw' }),
+			getNodeParameter: jest.fn((name: string, _itemIndex: number, defaultValue?: unknown) => {
+				const values: Record<string, unknown> = {
+					resource: 'worker',
+					operation: 'list',
+					returnAll: true,
+					offset: 0,
+				};
+				return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : defaultValue;
+			}),
+			helpers: {
+				returnJsonArray: jest.fn((rows: unknown[]) => rows.map((json) => ({ json }))),
+			},
+		};
+
+		const result = await routeCoreClawOperation.call(context as any, 0);
+
+		expect(result).toHaveLength(125);
+		expect(mockedRequest).toHaveBeenCalledTimes(2);
+		expect(mockedRequest.mock.calls[0][0]).toMatchObject({
+			qs: { offset: 0, limit: 100 },
+		});
+		expect(mockedRequest.mock.calls[1][0]).toMatchObject({
+			qs: { offset: 100, limit: 100 },
 		});
 	});
 });
