@@ -77,7 +77,6 @@ export class CoreClaw implements INodeType {
 					method: 'GET',
 					path: '/api/store',
 					qs: { search: filter ?? '', limit: 50 },
-					retrySafe: true,
 				});
 
 				const items = normalizeScraperSearchResults(data);
@@ -122,7 +121,6 @@ export class CoreClaw implements INodeType {
 							method: 'GET',
 							path: '/api/store',
 							qs: { search: query, limit },
-							retrySafe: true,
 						});
 						result = normalizeScraperSearchResults(result);
 						pushAsList = true;
@@ -134,7 +132,6 @@ export class CoreClaw implements INodeType {
 							method: 'GET',
 							path: '/api/scraper',
 							qs: { slug },
-							retrySafe: true,
 						});
 					} else if (operation === 'run') {
 						const slug = this.getNodeParameter('scraperSlug', i, '', {
