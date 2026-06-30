@@ -34,10 +34,6 @@ export function prepareRunWorkerBody(body: IDataObject): IDataObject {
 }
 
 export function wrapWorkerCustomInput(input: unknown): IDataObject {
-	if (input && typeof input === 'object' && !Array.isArray(input) && 'parameters' in input) {
-		return input as IDataObject;
-	}
-
 	return {
 		parameters: {
 			custom: input,

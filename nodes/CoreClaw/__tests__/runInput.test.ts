@@ -15,6 +15,20 @@ describe('prepareRunWorkerBody', () => {
 		});
 	});
 
+	it('wraps input_json containing parameters as custom input', () => {
+		expect(
+			prepareRunWorkerBody({
+				input_json: { parameters: { custom: { keyword: 'tea' } } },
+			}),
+		).toEqual({
+			input: {
+				parameters: {
+					custom: { parameters: { custom: { keyword: 'tea' } } },
+				},
+			},
+		});
+	});
+
 	it('passes raw_input_json through as input', () => {
 		expect(
 			prepareRunWorkerBody({
@@ -49,13 +63,13 @@ describe('prepareRunWorkerBody', () => {
 			prepareRunWorkerBody({
 				version: '',
 				callback_url: 'https://n8n.example/webhook/coreclaw',
-				is_async: true,
+				is_async: false,
 				offset: 0,
 				limit: 20,
 			}),
 		).toEqual({
 			callback_url: 'https://n8n.example/webhook/coreclaw',
-			is_async: true,
+			is_async: false,
 			offset: 0,
 			limit: 20,
 		});
