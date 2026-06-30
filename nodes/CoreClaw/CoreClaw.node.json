@@ -1,8 +1,9 @@
 {
 	"node": "n8n-nodes-coreclaw.coreClaw",
-	"nodeVersion": "1.0",
+	"nodeVersion": "2.0",
 	"codexVersion": "1.0",
 	"categories": ["Data & Storage", "Developer Tools"],
+	"description": "CoreClaw API v2 actions for workers, worker runs, saved worker tasks, proxy regions, account data, results, exports, and logs",
 	"resources": {
 		"credentialDocumentation": [
 			{
