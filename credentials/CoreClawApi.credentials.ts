@@ -22,16 +22,14 @@ export class CoreClawApi implements ICredentialType {
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			description:
-				'Your CoreClaw API key. Generate one at coreclaw.com → Console → API Keys.',
+			description: 'Your CoreClaw API v2 key. Generate one at coreclaw.com Console API Keys.',
 		},
 		{
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
 			default: 'https://openapi.coreclaw.com',
-			description:
-				'CoreClaw API base URL. Override only when targeting a private deployment.',
+			description: 'CoreClaw API base URL. Override only when targeting a private deployment.',
 			placeholder: 'https://openapi.coreclaw.com',
 		},
 	];
@@ -41,6 +39,7 @@ export class CoreClawApi implements ICredentialType {
 		properties: {
 			headers: {
 				'api-key': '={{$credentials.apiKey}}',
+				Authorization: '=Bearer {{$credentials.apiKey}}',
 			},
 		},
 	};
@@ -49,12 +48,12 @@ export class CoreClawApi implements ICredentialType {
 		request: {
 			baseURL:
 				'={{$credentials.baseUrl?.replace(/\\/$/, "") || "https://openapi.coreclaw.com"}}',
-			url: '/api/v1/account/info',
-			method: 'POST',
-			body: {},
+			url: '/api/v2/users/account',
+			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				'api-key': '={{$credentials.apiKey}}',
+				Authorization: '=Bearer {{$credentials.apiKey}}',
 			},
 		},
 		rules: [
@@ -62,14 +61,14 @@ export class CoreClawApi implements ICredentialType {
 				type: 'responseCode',
 				properties: {
 					value: 401,
-					message: 'Invalid CoreClaw API key — verify the key at coreclaw.com → Console → API Keys.',
+					message: 'Invalid CoreClaw API key. Verify the key at coreclaw.com Console API Keys.',
 				},
 			},
 			{
 				type: 'responseCode',
 				properties: {
 					value: 400,
-					message: 'CoreClaw API key is missing — verify the credential API Key field.',
+					message: 'CoreClaw API key is missing. Verify the credential API Key field.',
 				},
 			},
 		],

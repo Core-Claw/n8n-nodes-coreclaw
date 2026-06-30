@@ -5,6 +5,7 @@ jest.mock('n8n-workflow', () => ({
 
 import { sleep } from 'n8n-workflow';
 
+import { CoreClawApi } from '../../../credentials/CoreClawApi.credentials';
 import { CORECLAW_DEFAULT_TIMEOUT_MS } from '../constants';
 import { coreClawApiRequest, parseJsonParameter, splitCsv } from '../GenericFunctions';
 
@@ -274,5 +275,23 @@ describe('splitCsv', () => {
 
 	it('drops empty comma segments', () => {
 		expect(splitCsv('id,, ,status')).toEqual(['id', 'status']);
+	});
+});
+
+describe('CoreClawApi credentials', () => {
+	it('tests credentials against the v2 account endpoint', () => {
+		const credential = new CoreClawApi();
+
+		expect(credential.test.request.url).toBe('/api/v2/users/account');
+		expect(credential.test.request.method).toBe('GET');
+	});
+
+	it('authenticates v2 requests with api-key and bearer headers', () => {
+		const credential = new CoreClawApi();
+
+		expect(credential.authenticate.properties.headers).toMatchObject({
+			'api-key': '={{$credentials.apiKey}}',
+			Authorization: '=Bearer {{$credentials.apiKey}}',
+		});
 	});
 });
