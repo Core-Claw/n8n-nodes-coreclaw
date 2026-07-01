@@ -1,7 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-const runIdOperations = ['get', 'abort', 'getLog', 'rerun', 'listResults', 'exportResults'];
-const listOperations = ['list', 'listLastResults', 'listResults'];
+const runIdOperations = ['get', 'abort', 'getLog', 'rerun', 'rerunAndGetResults', 'listResults', 'exportResults'];
+const listOperations = ['list', 'listLastResults', 'listResults', 'rerunAndGetResults'];
 const runBodyOperations = ['abortLast', 'rerunLast', 'rerun'];
 
 const runIdField = (operations: string[]): INodeProperties => ({
@@ -236,6 +236,12 @@ export const workerRunOperations: INodeProperties[] = [
 				value: 'rerun',
 				description: 'Rerun a worker run',
 				action: 'Rerun worker run',
+			},
+			{
+				name: 'Rerun and Get Results',
+				value: 'rerunAndGetResults',
+				description: 'Rerun a worker run, wait for it to finish, and return the result rows in one step',
+				action: 'Rerun worker run and get results',
 			},
 			{
 				name: 'Rerun Last',

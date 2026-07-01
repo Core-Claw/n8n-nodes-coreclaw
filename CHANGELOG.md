@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Added one-step **Run and Get Results** composite operations on Worker, Worker Task, and Worker Run (Rerun and Get Results). Each submits a run, polls to a terminal status, and returns the result rows as n8n items — mirroring Apify's "Run and get dataset items" UX.
+- Composite operations surface the run log in the error when a run fails or is aborted.
+- Fixed run terminal-status detection: `aborting` is no longer treated as terminal; polling now continues until `succeeded`, `failed`, or `aborted`.
+- Reworked README with a table of contents, composite-operation guide, refreshed workflow examples, and a troubleshooting table.
+- Added unit tests for the composite operations (run, task, rerun, pagination, failed-run log).
+
 ## 0.2.0
 
 - Rebuilt the CoreClaw node for CoreClaw API v2.

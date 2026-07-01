@@ -1,7 +1,8 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-const listOperations = ['list'];
 const runOperations = ['run'];
+const taskRunOperations = ['run', 'runAndGetResults'];
+const paginationOperations = ['list', 'runAndGetResults'];
 
 const workerTaskIdField = (operations: string[]): INodeProperties => ({
 	displayName: 'Worker Task ID',
@@ -143,15 +144,21 @@ export const workerTaskOperations: INodeProperties[] = [
 				description: 'Run a saved CoreClaw API v2 worker task',
 				action: 'Run worker task',
 			},
+			{
+				name: 'Run and Get Results',
+				value: 'runAndGetResults',
+				description: 'Run a saved worker task, wait for it to finish, and return the result rows in one step',
+				action: 'Run worker task and get results',
+			},
 		],
 		default: 'list',
 	},
 ];
 
 export const workerTaskFields: INodeProperties[] = [
-	returnAllField(listOperations),
-	offsetField(listOperations),
-	limitField(listOperations, true),
+	returnAllField(paginationOperations),
+	offsetField(paginationOperations),
+	limitField(paginationOperations, true),
 	{
 		displayName: 'Keyword',
 		name: 'keyword',
@@ -179,7 +186,7 @@ export const workerTaskFields: INodeProperties[] = [
 		description: 'Filter by worker slug or owner path',
 		placeholder: 'owner~demo-worker',
 	},
-	workerTaskIdField(runOperations),
+	workerTaskIdField(taskRunOperations),
 	callbackUrlField(runOperations),
 	isAsyncField(runOperations),
 	offsetField(runOperations),

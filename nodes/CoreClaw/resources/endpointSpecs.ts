@@ -498,6 +498,82 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 	},
 ];
 
+/**
+ * Composite operations chain run → poll → fetch results into one node. They
+ * reuse the trigger endpoint (worker.run / workerTask.run / workerRun.rerun)
+ * as their starting call, so we attach the existing spec as compositeTrigger.
+ *
+ * Params here only describe the UI fields the composite operation reads:
+ *   - the trigger's own params (workerId/input/version, workerTaskId, runId)
+ *   - result pagination (offset/limit/returnAll)
+ *
+ * The composite executor forces is_async=true and ignores waitForFinish since
+ * it always polls client-side.
+ */
+function buildRunAndGetResultsSpecs(): CoreClawEndpointSpec[] {
+	const workerRunTrigger = endpointSpecs.find(
+		(spec) => spec.resource === 'worker' && spec.operation === 'run',
+	)!;
+	const workerTaskRunTrigger = endpointSpecs.find(
+		(spec) => spec.resource === 'workerTask' && spec.operation === 'run',
+	)!;
+	const workerRunRerunTrigger = endpointSpecs.find(
+		(spec) => spec.resource === 'workerRun' && spec.operation === 'rerun',
+	)!;
+
+	const resultPaginationParams: CoreClawParamSpec[] = [
+		offsetParam(),
+		limitParam(),
+	];
+
+	return [
+		{
+			resource: 'worker',
+			operation: 'runAndGetResults',
+			displayName: 'Run and Get Results',
+			action: 'Run worker and return result rows',
+			method: workerRunTrigger.method,
+			path: workerRunTrigger.path,
+			auth: true,
+			composite: 'runAndGetResults',
+			compositeTrigger: workerRunTrigger,
+			returnsList: true,
+			supportsReturnAll: true,
+			params: [...workerRunTrigger.params, ...resultPaginationParams],
+		},
+		{
+			resource: 'workerTask',
+			operation: 'runAndGetResults',
+			displayName: 'Run and Get Results',
+			action: 'Run worker task and return result rows',
+			method: workerTaskRunTrigger.method,
+			path: workerTaskRunTrigger.path,
+			auth: true,
+			composite: 'runAndGetResults',
+			compositeTrigger: workerTaskRunTrigger,
+			returnsList: true,
+			supportsReturnAll: true,
+			params: [...workerTaskRunTrigger.params, ...resultPaginationParams],
+		},
+		{
+			resource: 'workerRun',
+			operation: 'rerunAndGetResults',
+			displayName: 'Rerun and Get Results',
+			action: 'Rerun worker run and return result rows',
+			method: workerRunRerunTrigger.method,
+			path: workerRunRerunTrigger.path,
+			auth: true,
+			composite: 'runAndGetResults',
+			compositeTrigger: workerRunRerunTrigger,
+			returnsList: true,
+			supportsReturnAll: true,
+			params: [...workerRunRerunTrigger.params, ...resultPaginationParams],
+		},
+	];
+}
+
+endpointSpecs.push(...buildRunAndGetResultsSpecs());
+
 export function getEndpointSpec(resource: string, operation: string) {
 	return endpointSpecs.find((spec) => spec.resource === resource && spec.operation === operation);
 }
