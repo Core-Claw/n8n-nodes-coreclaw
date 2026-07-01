@@ -7,6 +7,21 @@ Use [CoreClaw](https://coreclaw.com) API v2 in n8n to discover workers, run work
 - **CoreClaw**: an action node for CoreClaw API v2 workers, worker runs, worker tasks, store workers, proxy regions, and account data.
 - **CoreClaw Trigger**: a webhook trigger node for CoreClaw `callback_url` run events.
 
+## Table of contents
+
+- [Installation](#installation)
+- [Credentials](#credentials)
+- [CoreClaw Node](#coreclaw-node)
+- [One-step: Run and Get Results](#one-step-run-and-get-results)
+- [Running Workers](#running-workers)
+- [CoreClaw Trigger](#coreclaw-trigger)
+- [Workflows](#workflows)
+- [Error Handling](#error-handling)
+- [Troubleshooting](#troubleshooting)
+- [Live Tests](#live-tests)
+- [Endpoint Scope](#endpoint-scope)
+- [Compatibility](#compatibility)
+
 ## Installation
 
 Follow the [n8n community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/).
@@ -43,6 +58,7 @@ The action node exposes 28 CoreClaw API v2 operations.
 - **Get**
 - **Get Input Schema**
 - **Run**
+- **Run and Get Results** *(run → wait → return result rows in one step)*
 - **Get Last Run**
 - **Abort Last Run**
 - **Export Last Run Results**
@@ -63,6 +79,7 @@ The action node exposes 28 CoreClaw API v2 operations.
 - **Abort**
 - **Get Log**
 - **Rerun**
+- **Rerun and Get Results** *(rerun → wait → return result rows in one step)*
 - **List Results**
 - **Export Results**
 
@@ -70,6 +87,7 @@ The action node exposes 28 CoreClaw API v2 operations.
 
 - **List**
 - **Run**
+- **Run and Get Results** *(run → wait → return result rows in one step)*
 
 ### Proxy
 
@@ -80,6 +98,22 @@ The action node exposes 28 CoreClaw API v2 operations.
 - **Get Info**
 
 Worker, worker task, and worker run fields use resource locators where useful. You can pick from CoreClaw lists or paste an ID/path manually.
+
+## One-step: Run and Get Results
+
+The **Run and Get Results** operations (on Worker, Worker Task, and Worker Run) run a worker in one node and return the result rows directly — no need to wire separate Run → Get → List Results nodes.
+
+The node:
+
+1. Submits the run asynchronously.
+2. Polls `GET /api/v2/worker-runs/{runId}` until the run reaches a terminal status (`succeeded`, `failed`, or `aborted`).
+3. Fetches the result rows from `GET /api/v2/worker-runs/{runId}/result` and returns each row as an n8n item.
+
+Use **Return All** to page through every result (capped at 10,000 rows for safety), or set **Offset** / **Limit** for a single page.
+
+If the run finishes unsuccessfully, the node throws an error that includes the run status, `err_msg`, and the run log when available — so you can see why it failed without a separate Get Log step.
+
+> Polling runs client-side for up to ~4 minutes (120 attempts × 2s). For longer jobs, keep **Worker > Run** asynchronous and use **CoreClaw Trigger** with `callback_url` instead.
 
 ## Running Workers
 
@@ -111,7 +145,12 @@ Expected callback payload fields include `run_id`, `run_status`, `error_message`
 
 ## Workflows
 
-### Discover, Run, Fetch Results
+### Run a Worker and Get Results (one step)
+
+1. **CoreClaw: Worker > Run and Get Results** — run, wait, and return result rows in a single node.
+2. Pipe the result items straight into your downstream step (spreadsheet, AI, database…).
+
+### Discover, Run, Fetch Results (manual)
 
 1. **CoreClaw: Store Worker > List**
 2. **CoreClaw: Worker > Get Input Schema**
@@ -121,10 +160,9 @@ Expected callback payload fields include `run_id`, `run_status`, `error_message`
 
 ### Run a Saved Task and Export
 
-1. **CoreClaw: Worker Task > List**
+1. **CoreClaw: Worker Task > Run and Get Results** — or, to export a file instead of rows:
 2. **CoreClaw: Worker Task > Run**
-3. **CoreClaw: Worker Run > Get**
-4. **CoreClaw: Worker Run > Export Results**
+3. **CoreClaw: Worker Run > Export Results**
 
 ### Receive Callback Events
 
@@ -146,6 +184,18 @@ The node:
 - Does not retry run, rerun, or abort POST requests.
 
 Enable **Continue On Fail** in n8n to emit an item containing `error` and `errorDescription` instead of stopping the workflow.
+
+## Troubleshooting
+
+| Symptom | Cause / Fix |
+| --- | --- |
+| **Credential test fails with `CoreClaw error 12001/12002`** | Invalid API key. Regenerate the key in the CoreClaw console and paste it into the credential. |
+| **`Resource not found` (CoreClaw error 11004/50001/70001)`** | Wrong ID. Use the resource locator's **From List** mode to pick a valid worker/task/run, or verify the slug/owner path format (`owner~demo-worker`). |
+| **`Insufficient balance` (CoreClaw error 30001)** | Top up the CoreClaw account before running workers. |
+| **Run and Get Results never returns** | The run may exceed the ~4-minute polling budget. Switch to asynchronous **Worker > Run** + **CoreClaw Trigger** with `callback_url` for long jobs. |
+| **Run and Get Results returns a `failed`/`aborted` error** | The node attaches the run log to the error description. Open the node's error output or check **Continue On Fail** output for the `errorDescription` containing the log. |
+| **Empty result rows on a succeeded run** | The worker produced no results. Inspect the run with **Worker Run > Get Log** and validate the input against **Worker > Get Input Schema**. |
+| **Webhook trigger never fires** | CoreClaw cannot reach n8n. Set a public `WEBHOOK_URL` (or tunnel) and paste the trigger URL into `callback_url` on the run operation. |
 
 ## Live Tests
 

@@ -8,8 +8,14 @@ export const CORECLAW_TERMINAL_RUN_STATUSES = [
 	'succeeded',
 	'failed',
 	'aborted',
-	'aborting',
 ] as const;
+
+/**
+ * Run statuses that indicate the run finished unsuccessfully. The Run and Get
+ * Results composite operations use this to surface the run log instead of an
+ * empty result set when the run did not succeed.
+ */
+export const CORECLAW_FAILED_RUN_STATUSES = ['failed', 'aborted'] as const;
 
 export const CORECLAW_ERROR_HINTS: Record<number, string> = {
 	10000: 'Internal server error: retry later or contact CoreClaw support with the request ID.',

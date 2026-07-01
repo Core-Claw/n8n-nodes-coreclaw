@@ -35,6 +35,18 @@ export interface CoreClawEndpointSpec {
 	returnsList?: boolean;
 	supportsReturnAll?: boolean;
 	supportsWaitForFinish?: boolean;
+	/**
+	 * Composite operations chain multiple API calls into one node (e.g. run a
+	 * worker, poll until it finishes, then return its result rows). They are
+	 * not executed through the standard single-request router path.
+	 */
+	composite?: 'runAndGetResults';
+	/**
+	 * For composite operations, the spec of the API call that starts the run
+	 * (e.g. POST /workers/{workerId}/runs). The composite executor uses this to
+	 * build the trigger request, then polls and fetches results.
+	 */
+	compositeTrigger?: CoreClawEndpointSpec;
 }
 
 export interface CoreClawEnvelope {

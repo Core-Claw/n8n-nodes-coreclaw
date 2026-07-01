@@ -4,6 +4,7 @@ const workerIdOperations = [
 	'get',
 	'getInputSchema',
 	'run',
+	'runAndGetResults',
 	'getLastRun',
 	'abortLastRun',
 	'exportLastRunResults',
@@ -13,8 +14,8 @@ const workerIdOperations = [
 ];
 
 const listOperations = ['list'];
-const resultListOperations = ['listLastRunResults'];
-const runBodyOperations = ['run', 'abortLastRun', 'rerunLastRun'];
+const resultListOperations = ['listLastRunResults', 'runAndGetResults'];
+const inputJsonOperations = ['run', 'runAndGetResults'];
 
 const workerIdField = (operations: string[]): INodeProperties => ({
 	displayName: 'Worker ID',
@@ -242,6 +243,12 @@ export const workerOperations: INodeProperties[] = [
 				value: 'run',
 				description: 'Run a CoreClaw API v2 worker',
 				action: 'Run worker',
+			},
+			{
+				name: 'Run and Get Results',
+				value: 'runAndGetResults',
+				description: 'Run a worker, wait for it to finish, and return the result rows in one step',
+				action: 'Run worker and get results',
 			}
 		],
 		default: 'list',
@@ -274,7 +281,7 @@ export const workerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['worker'],
-				operation: ['run'],
+				operation: inputJsonOperations,
 			},
 		},
 		description: 'Worker script version. Leave empty to use the CoreClaw default.',
@@ -288,7 +295,7 @@ export const workerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['worker'],
-				operation: ['run'],
+				operation: inputJsonOperations,
 			},
 		},
 		description: 'Worker input parameters. CoreClaw wraps this as input.parameters.custom.',
@@ -304,7 +311,7 @@ export const workerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['worker'],
-				operation: ['run'],
+				operation: inputJsonOperations,
 			},
 		},
 		description: 'Full CoreClaw input object. Do not use together with Input JSON.',
@@ -312,10 +319,10 @@ export const workerFields: INodeProperties[] = [
 			rows: 6,
 		},
 	},
-	callbackUrlField(runBodyOperations),
-	isAsyncField(runBodyOperations),
-	offsetField(runBodyOperations),
-	limitField(runBodyOperations, false),
+	callbackUrlField(['run', 'abortLastRun', 'rerunLastRun']),
+	isAsyncField(['run', 'abortLastRun', 'rerunLastRun']),
+	offsetField(['run', 'abortLastRun', 'rerunLastRun']),
+	limitField(['run', 'abortLastRun', 'rerunLastRun'], false),
 	waitForFinishField(['run', 'rerunLastRun']),
 	formatField(['exportLastRunResults']),
 	filterKeysField(['exportLastRunResults']),

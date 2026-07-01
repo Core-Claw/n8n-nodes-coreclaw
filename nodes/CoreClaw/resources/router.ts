@@ -2,7 +2,10 @@ import type { IDataObject, IExecuteFunctions, INode, INodeExecutionData } from '
 import { NodeOperationError, sleep } from 'n8n-workflow';
 
 import { coreClawApiRequest, parseJsonParameter } from '../GenericFunctions';
-import { CORECLAW_TERMINAL_RUN_STATUSES } from '../constants';
+import {
+	CORECLAW_FAILED_RUN_STATUSES,
+	CORECLAW_TERMINAL_RUN_STATUSES,
+} from '../constants';
 import type { CoreClawEndpointSpec, CoreClawRequestArgs } from '../types';
 import { getEndpointSpec } from './endpointSpecs';
 import { extractItems, nextOffset } from './pagination';
@@ -74,6 +77,10 @@ export async function routeCoreClawOperation(
 		});
 	}
 
+	if (spec.composite === 'runAndGetResults') {
+		return executeRunAndGetResults.call(this, spec, itemIndex);
+	}
+
 	const params = collectParams.call(this, spec, itemIndex);
 	const returnAll = spec.supportsReturnAll && (this.getNodeParameter('returnAll', itemIndex, false) as boolean);
 
@@ -87,6 +94,122 @@ export async function routeCoreClawOperation(
 	const outputRows = spec.returnsList ? extractItems(data) : undefined;
 	if (outputRows) return this.helpers.returnJsonArray(outputRows);
 	return [{ json: (data as IDataObject) ?? {} }];
+}
+
+/**
+ * Composite operation: run a worker / worker task / rerun, poll the run until
+ * it reaches a terminal status, then return the run result rows as n8n items.
+ *
+ * Mirrors Apify's "Run Task and get dataset items" — one node, one click, the
+ * user gets the data out instead of wiring Run → Get → List Results.
+ *
+ * The run is always submitted asynchronously (is_async=true) so we can poll
+ * with GET /worker-runs/{runId}. When the run finishes unsuccessfully we
+ * surface the run log so the user can see why it failed.
+ */
+async function executeRunAndGetResults(
+	this: IExecuteFunctions,
+	spec: CoreClawEndpointSpec,
+	itemIndex: number,
+): Promise<INodeExecutionData[]> {
+	const triggerSpec = spec.compositeTrigger;
+	if (!triggerSpec) {
+		throw new NodeOperationError(
+			this.getNode(),
+			`Composite operation ${spec.resource}.${spec.operation} is missing its trigger spec`,
+			{ itemIndex },
+		);
+	}
+
+	const params = collectParams.call(this, spec, itemIndex);
+	// Composite operations always poll client-side; never ask the backend to block.
+	params.is_async = true;
+
+	const triggerRequest = buildRequestFromSpec(triggerSpec, params, this.getNode());
+	const runData = (await coreClawApiRequest.call(this, triggerRequest)) as IDataObject;
+	const terminalRun = (await waitForRunToFinish.call(this, runData, itemIndex)) as IDataObject | undefined;
+	const status = String(terminalRun?.status ?? '').toLowerCase();
+
+	if ((CORECLAW_FAILED_RUN_STATUSES as readonly string[]).includes(status)) {
+		const runId = extractRunId(terminalRun) || extractRunId(runData);
+		const log = runId
+			? await safeFetchRunLog.call(this, runId)
+			: undefined;
+		const errMsg = String(terminalRun?.err_msg ?? '') || `Run finished with status ${status}`;
+		throw new NodeOperationError(this.getNode(), `CoreClaw run ${runId || ''} ${status}: ${errMsg}`.trim(), {
+			itemIndex,
+			description: log ? `Run log:\n${log}` : 'No run log was available.',
+		});
+	}
+
+	const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+	const runId = extractRunId(terminalRun) || extractRunId(runData);
+	if (!runId) {
+		throw new NodeOperationError(this.getNode(), 'CoreClaw run did not return a run id', { itemIndex });
+	}
+
+	const rows = returnAll
+		? await fetchAllResultRows.call(this, runId, RETURN_ALL_MAX_ROWS)
+		: await fetchResultPage.call(this, runId, Number(params.offset ?? 0), Number(params.limit ?? 50));
+
+	return this.helpers.returnJsonArray(rows);
+}
+
+async function fetchResultPage(
+	this: IExecuteFunctions,
+	runId: string,
+	offset: number,
+	limit: number,
+): Promise<IDataObject[]> {
+	const data = await coreClawApiRequest.call(this, {
+		method: 'GET',
+		path: `/api/v2/worker-runs/${encodeURIComponent(runId)}/result`,
+		qs: { offset, limit: Math.min(PAGE_SIZE_LIMIT, limit) },
+		retrySafe: true,
+	});
+	return extractItems(data) ?? [];
+}
+
+async function fetchAllResultRows(
+	this: IExecuteFunctions,
+	runId: string,
+	maxRows: number,
+): Promise<IDataObject[]> {
+	const rows: IDataObject[] = [];
+	let offset = 0;
+
+	while (rows.length < maxRows) {
+		const pageRows = await fetchResultPage.call(this, runId, offset, Math.min(PAGE_SIZE_LIMIT, maxRows - rows.length));
+		if (pageRows.length === 0) break;
+		rows.push(...pageRows);
+		if (pageRows.length < PAGE_SIZE_LIMIT) break;
+		offset = nextOffset(offset, pageRows);
+	}
+
+	return rows.slice(0, maxRows);
+}
+
+async function safeFetchRunLog(this: IExecuteFunctions, runId: string): Promise<string | undefined> {
+	try {
+		const data = await coreClawApiRequest.call(this, {
+			method: 'GET',
+			path: `/api/v2/worker-runs/${encodeURIComponent(runId)}/log`,
+			retrySafe: true,
+		});
+		if (typeof data === 'string') return data;
+		if (isDataObject(data)) {
+			const log = data.log ?? data.content ?? data.data;
+			if (typeof log === 'string') return log;
+			try {
+				return JSON.stringify(data);
+			} catch {
+				return undefined;
+			}
+		}
+		return undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 async function waitForRunToFinish(
