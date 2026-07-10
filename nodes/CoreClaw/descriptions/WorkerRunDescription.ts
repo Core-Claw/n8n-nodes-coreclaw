@@ -134,8 +134,14 @@ const formatField = (operations: string[]): INodeProperties => ({
 	options: [
 		{ name: 'CSV', value: 'csv' },
 		{ name: 'JSON', value: 'json' },
+		{ name: 'JSONL', value: 'jsonl' },
+		{ name: 'XLSX', value: 'xlsx' },
+		{ name: 'XLS', value: 'xls' },
+		{ name: 'XML', value: 'xml' },
+		{ name: 'HTML', value: 'html' },
+		{ name: 'RSS', value: 'rss' },
 	],
-	description: 'Export file format',
+	description: 'Export file format. Supports csv, json, jsonl, xlsx, xls, xml, html, rss (case-insensitive). Defaults to csv.',
 });
 
 const filterKeysField = (operations: string[]): INodeProperties => ({

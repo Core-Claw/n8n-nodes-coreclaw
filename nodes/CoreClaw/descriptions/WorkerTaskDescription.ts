@@ -315,8 +315,9 @@ export const workerTaskFields: INodeProperties[] = [
 			{ name: 'Daily', value: 1 },
 			{ name: 'Weekly', value: 2 },
 			{ name: 'Monthly', value: 3 },
+			{ name: 'Once', value: 4 },
 		],
-		description: 'Schedule type: 1=daily, 2=weekly, 3=monthly',
+		description: 'Schedule type: 1=daily, 2=weekly, 3=monthly, 4=once',
 	},
 	{
 		displayName: 'Schedule Time',
@@ -334,8 +335,8 @@ export const workerTaskFields: INodeProperties[] = [
 	{
 		displayName: 'Schedule Weekday',
 		name: 'schedule_weekday',
-		type: 'number',
-		typeOptions: { minValue: 0, maxValue: 6 },
+		type: 'options',
+		typeOptions: { minValue: 1, maxValue: 7 },
 		default: '',
 		displayOptions: {
 			show: {
@@ -343,7 +344,16 @@ export const workerTaskFields: INodeProperties[] = [
 				operation: [...createOperations, ...updateOperations],
 			},
 		},
-		description: 'Day of week for weekly schedules: 0-6, 0=Sunday',
+		options: [
+			{ name: 'Monday', value: 1 },
+			{ name: 'Tuesday', value: 2 },
+			{ name: 'Wednesday', value: 3 },
+			{ name: 'Thursday', value: 4 },
+			{ name: 'Friday', value: 5 },
+			{ name: 'Saturday', value: 6 },
+			{ name: 'Sunday', value: 7 },
+		],
+		description: 'Day of week for weekly schedules: 1=Monday … 7=Sunday',
 	},
 	{
 		displayName: 'Schedule Day',

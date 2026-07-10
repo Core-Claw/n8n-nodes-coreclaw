@@ -91,8 +91,14 @@ const formatParam = (): CoreClawParamSpec => ({
 	options: [
 		{ name: 'CSV', value: 'csv' },
 		{ name: 'JSON', value: 'json' },
+		{ name: 'JSONL', value: 'jsonl' },
+		{ name: 'XLSX', value: 'xlsx' },
+		{ name: 'XLS', value: 'xls' },
+		{ name: 'XML', value: 'xml' },
+		{ name: 'HTML', value: 'html' },
+		{ name: 'RSS', value: 'rss' },
 	],
-	description: 'Export file format',
+	description: 'Export file format. Supports csv, json, jsonl, xlsx, xls, xml, html, rss (case-insensitive). Defaults to csv.',
 });
 
 const filterKeysParam = (): CoreClawParamSpec => ({
@@ -171,8 +177,9 @@ const scheduleTypeParam = (): CoreClawParamSpec => ({
 		{ name: 'Daily', value: 1 },
 		{ name: 'Weekly', value: 2 },
 		{ name: 'Monthly', value: 3 },
+		{ name: 'Once', value: 4 },
 	],
-	description: 'Schedule type: 1=daily, 2=weekly, 3=monthly',
+	description: 'Schedule type: 1=daily, 2=weekly, 3=monthly, 4=once',
 });
 
 const scheduleTimeParam = (): CoreClawParamSpec => ({
@@ -190,7 +197,16 @@ const scheduleWeekdayParam = (): CoreClawParamSpec => ({
 	location: 'body',
 	type: 'number',
 	default: '',
-	description: 'Day of week for weekly schedules: 0-6, 0=Sunday',
+	options: [
+		{ name: 'Monday', value: 1 },
+		{ name: 'Tuesday', value: 2 },
+		{ name: 'Wednesday', value: 3 },
+		{ name: 'Thursday', value: 4 },
+		{ name: 'Friday', value: 5 },
+		{ name: 'Saturday', value: 6 },
+		{ name: 'Sunday', value: 7 },
+	],
+	description: 'Day of week for weekly schedules: 1=Monday … 7=Sunday',
 });
 
 const scheduleDayParam = (): CoreClawParamSpec => ({
