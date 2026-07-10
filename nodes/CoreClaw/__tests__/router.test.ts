@@ -99,6 +99,41 @@ describe('router request building', () => {
 		expect(buildRequest).toThrow(NodeOperationError);
 		expect(buildRequest).toThrow('Worker ID is required');
 	});
+
+	it('wraps input_json as input.parameters.custom when creating a worker task', () => {
+		const spec = getEndpointSpec('workerTask', 'create');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			worker_id: 'coreclaw~google-search-scraper',
+			title: 'Daily Search',
+			input_json: { keyword: 'coffee', max_pages: '1' },
+		});
+
+		expect(request.method).toBe('POST');
+		expect(request.path).toBe('/api/v2/worker-tasks');
+		expect(request.body).toEqual({
+			worker_id: 'coreclaw~google-search-scraper',
+			title: 'Daily Search',
+			input: { parameters: { custom: { keyword: 'coffee', max_pages: '1' } } },
+		});
+	});
+
+	it('wraps input_json as input.parameters.custom when updating a worker task input', () => {
+		const spec = getEndpointSpec('workerTask', 'updateInput');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			workerTaskId: 'task_1',
+			input_json: { keyword: 'coffee' },
+		});
+
+		expect(request.method).toBe('PUT');
+		expect(request.path).toBe('/api/v2/worker-tasks/task_1/input');
+		expect(request.body).toEqual({
+			input: { parameters: { custom: { keyword: 'coffee' } } },
+		});
+	});
 });
 
 describe('routeCoreClawOperation', () => {

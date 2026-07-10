@@ -56,4 +56,41 @@ live('CoreClaw live API v2 smoke tests', () => {
 		const data = await request('/api/v2/worker-tasks?offset=0&limit=1');
 		expect(data).toBeDefined();
 	});
+
+	it('creates, reads, updates input, and deletes a worker task (input wrapped as parameters.custom)', async () => {
+		const created = (await request('/api/v2/worker-tasks', {
+			method: 'POST',
+			body: JSON.stringify({
+				worker_id: 'coreclaw~google-search-scraper',
+				title: 'n8n live CRUD test',
+				input: { parameters: { custom: { keyword: 'pizza', max_pages: '1' } } },
+				schedule_enabled: 0,
+			}),
+		})) as { slug: string };
+		expect(created.slug).toBeTruthy();
+		const taskSlug = created.slug;
+
+		try {
+			const detail = (await request(`/api/v2/worker-tasks/${taskSlug}`)) as { title: string };
+			expect(detail.title).toBe('n8n live CRUD test');
+
+			const fetchedInput = (await request(`/api/v2/worker-tasks/${taskSlug}/input`)) as {
+				input: { parameters?: { custom?: { keyword?: string } } };
+			};
+			expect(fetchedInput.input?.parameters?.custom?.keyword).toBe('pizza');
+
+			await request(`/api/v2/worker-tasks/${taskSlug}/input`, {
+				method: 'PUT',
+				body: JSON.stringify({
+					input: { parameters: { custom: { keyword: 'coffee', max_pages: '1' } } },
+				}),
+			});
+			const updatedInput = (await request(`/api/v2/worker-tasks/${taskSlug}/input`)) as {
+				input: { parameters?: { custom?: { keyword?: string } } };
+			};
+			expect(updatedInput.input?.parameters?.custom?.keyword).toBe('coffee');
+		} finally {
+			await request(`/api/v2/worker-tasks/${taskSlug}`, { method: 'DELETE' });
+		}
+	});
 });

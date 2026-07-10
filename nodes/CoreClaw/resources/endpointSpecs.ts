@@ -111,6 +111,128 @@ const runBodyParams = (): CoreClawParamSpec[] => [
 	bodyLimitParam(),
 ];
 
+// --- worker-task schedule body params (create/update) ---
+
+const taskTitleParam = (): CoreClawParamSpec => ({
+	name: 'title',
+	displayName: 'Title',
+	location: 'body',
+	type: 'string',
+	default: '',
+	required: true,
+	description: 'Task title',
+});
+
+const taskDescriptionParam = (): CoreClawParamSpec => ({
+	name: 'description',
+	displayName: 'Description',
+	location: 'body',
+	type: 'string',
+	default: '',
+	description: 'Task description',
+});
+
+const taskVersionParam = (): CoreClawParamSpec => ({
+	name: 'version',
+	displayName: 'Version',
+	location: 'body',
+	type: 'string',
+	default: '',
+	description: 'Worker script version. Leave empty to use the current worker version.',
+});
+
+const taskWorkerIdBodyParam = (): CoreClawParamSpec => ({
+	name: 'worker_id',
+	displayName: 'Worker ID',
+	location: 'body',
+	type: 'string',
+	default: '',
+	required: true,
+	description: 'Worker slug or owner path, such as demo-worker or owner~demo-worker',
+});
+
+const taskInputJsonBodyParam = (): CoreClawParamSpec => ({
+	name: 'input_json',
+	displayName: 'Input JSON',
+	location: 'body',
+	type: 'json',
+	default: '',
+	required: true,
+	description: 'Task input JSON. Wrapped as input.parameters.custom.',
+});
+
+const scheduleTypeParam = (): CoreClawParamSpec => ({
+	name: 'schedule_type',
+	displayName: 'Schedule Type',
+	location: 'body',
+	type: 'number',
+	default: '',
+	options: [
+		{ name: 'Daily', value: 1 },
+		{ name: 'Weekly', value: 2 },
+		{ name: 'Monthly', value: 3 },
+	],
+	description: 'Schedule type: 1=daily, 2=weekly, 3=monthly',
+});
+
+const scheduleTimeParam = (): CoreClawParamSpec => ({
+	name: 'schedule_time',
+	displayName: 'Schedule Time',
+	location: 'body',
+	type: 'string',
+	default: '',
+	description: 'Schedule time of day in HH:mm format, for example 09:00',
+});
+
+const scheduleWeekdayParam = (): CoreClawParamSpec => ({
+	name: 'schedule_weekday',
+	displayName: 'Schedule Weekday',
+	location: 'body',
+	type: 'number',
+	default: '',
+	description: 'Day of week for weekly schedules: 0-6, 0=Sunday',
+});
+
+const scheduleDayParam = (): CoreClawParamSpec => ({
+	name: 'schedule_day',
+	displayName: 'Schedule Day',
+	location: 'body',
+	type: 'number',
+	default: '',
+	description: 'Day of month for monthly schedules (1-31)',
+});
+
+const scheduleOnceDateParam = (): CoreClawParamSpec => ({
+	name: 'schedule_once_date',
+	displayName: 'Schedule Once Date',
+	location: 'body',
+	type: 'string',
+	default: '',
+	description: 'Date for one-time schedules in YYYY-MM-DD format',
+});
+
+const scheduleEnabledParam = (): CoreClawParamSpec => ({
+	name: 'schedule_enabled',
+	displayName: 'Schedule Enabled',
+	location: 'body',
+	type: 'number',
+	default: '',
+	options: [
+		{ name: 'Disabled', value: 0 },
+		{ name: 'Enabled', value: 1 },
+	],
+	description: 'Schedule switch: 0=disabled, 1=enabled',
+});
+
+const taskScheduleParams = (): CoreClawParamSpec[] => [
+	scheduleTypeParam(),
+	scheduleTimeParam(),
+	scheduleWeekdayParam(),
+	scheduleDayParam(),
+	scheduleOnceDateParam(),
+	scheduleEnabledParam(),
+];
+
 export const excludedEndpointKeys = [
 	'POST /api/v2/workers/{workerId}/versions',
 	'PUT /api/v2/workers/{workerId}/versions/{version}',
@@ -220,7 +342,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 		method: 'POST',
 		path: '/api/v2/worker-runs/last/abort',
 		auth: true,
-		params: runBodyParams(),
+		params: [],
 	},
 	{
 		resource: 'workerRun',
@@ -364,6 +486,75 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 		params: [workerTaskIdPathParam(), ...runBodyParams()],
 	},
 	{
+		resource: 'workerTask',
+		operation: 'create',
+		displayName: 'Create',
+		action: 'Create worker task',
+		method: 'POST',
+		path: '/api/v2/worker-tasks',
+		auth: true,
+		wrapsInput: true,
+		params: [
+			taskWorkerIdBodyParam(),
+			taskTitleParam(),
+			taskInputJsonBodyParam(),
+			taskDescriptionParam(),
+			taskVersionParam(),
+			...taskScheduleParams(),
+		],
+	},
+	{
+		resource: 'workerTask',
+		operation: 'get',
+		displayName: 'Get',
+		action: 'Get worker task',
+		method: 'GET',
+		path: '/api/v2/worker-tasks/{workerTaskId}',
+		auth: true,
+		params: [workerTaskIdPathParam()],
+	},
+	{
+		resource: 'workerTask',
+		operation: 'update',
+		displayName: 'Update',
+		action: 'Update worker task',
+		method: 'PUT',
+		path: '/api/v2/worker-tasks/{workerTaskId}',
+		auth: true,
+		params: [workerTaskIdPathParam(), taskTitleParam(), taskDescriptionParam(), ...taskScheduleParams()],
+	},
+	{
+		resource: 'workerTask',
+		operation: 'delete',
+		displayName: 'Delete',
+		action: 'Delete worker task',
+		method: 'DELETE',
+		path: '/api/v2/worker-tasks/{workerTaskId}',
+		auth: true,
+		params: [workerTaskIdPathParam()],
+	},
+	{
+		resource: 'workerTask',
+		operation: 'getInput',
+		displayName: 'Get Input',
+		action: 'Get worker task input',
+		method: 'GET',
+		path: '/api/v2/worker-tasks/{workerTaskId}/input',
+		auth: true,
+		params: [workerTaskIdPathParam()],
+	},
+	{
+		resource: 'workerTask',
+		operation: 'updateInput',
+		displayName: 'Update Input',
+		action: 'Update worker task input',
+		method: 'PUT',
+		path: '/api/v2/worker-tasks/{workerTaskId}/input',
+		auth: true,
+		wrapsInput: true,
+		params: [workerTaskIdPathParam(), taskInputJsonBodyParam(), taskVersionParam()],
+	},
+	{
 		resource: 'worker',
 		operation: 'list',
 		displayName: 'List',
@@ -404,6 +595,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 		path: '/api/v2/workers/{workerId}/runs',
 		auth: true,
 		supportsWaitForFinish: true,
+		wrapsInput: true,
 		params: [
 			workerIdPathParam(),
 			{
@@ -451,7 +643,7 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 		method: 'POST',
 		path: '/api/v2/workers/{workerId}/runs/last/abort',
 		auth: true,
-		params: [workerIdPathParam(), ...runBodyParams()],
+		params: [workerIdPathParam()],
 	},
 	{
 		resource: 'worker',

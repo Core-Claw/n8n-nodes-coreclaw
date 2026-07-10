@@ -15,12 +15,36 @@ function fieldNamesFor(fields: INodeProperties[], resource: string, operation: s
 }
 
 describe('CoreClaw API v2 endpoint scope', () => {
-	it('exposes exactly the 28 allowed API v2 endpoints', () => {
+	it('exposes exactly the 34 allowed API v2 endpoints', () => {
 		// Composite operations (run/rerun and get results) reuse existing run
 		// endpoints as their trigger — they do not add new API surface. The
 		// invariant we guard is the distinct method+path count.
 		const distinctEndpoints = new Set(endpointSpecs.map((spec) => `${spec.method} ${spec.path}`));
-		expect(distinctEndpoints.size).toBe(28);
+		expect(distinctEndpoints.size).toBe(34);
+	});
+
+	it('exposes the worker-task CRUD surface', () => {
+		const exposed = new Set(endpointSpecs.map((spec) => `${spec.method} ${spec.path}`));
+		expect(exposed.has('POST /api/v2/worker-tasks')).toBe(true);
+		expect(exposed.has('GET /api/v2/worker-tasks/{workerTaskId}')).toBe(true);
+		expect(exposed.has('PUT /api/v2/worker-tasks/{workerTaskId}')).toBe(true);
+		expect(exposed.has('DELETE /api/v2/worker-tasks/{workerTaskId}')).toBe(true);
+		expect(exposed.has('GET /api/v2/worker-tasks/{workerTaskId}/input')).toBe(true);
+		expect(exposed.has('PUT /api/v2/worker-tasks/{workerTaskId}/input')).toBe(true);
+	});
+
+	it('wraps input_json on run, create, and update input operations', () => {
+		const wrapsInput = endpointSpecs.filter((spec) => spec.wrapsInput);
+		const wrapKeys = wrapsInput.map((spec) => `${spec.resource}.${spec.operation}`).sort();
+		expect(wrapKeys).toEqual(['worker.run', 'workerTask.create', 'workerTask.updateInput']);
+	});
+
+	it('does not send body params on abort endpoints (API has no abort body)', () => {
+		const abortSpecs = endpointSpecs.filter((spec) => /abort/i.test(spec.operation));
+		for (const spec of abortSpecs) {
+			const bodyParams = spec.params.filter((p) => p.location === 'body');
+			expect(bodyParams).toHaveLength(0);
+		}
 	});
 
 	it('registers three composite run-and-get-results operations that reuse trigger endpoints', () => {

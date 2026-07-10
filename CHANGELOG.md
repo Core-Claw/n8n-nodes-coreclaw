@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Added **Worker Task CRUD** operations: Create, Get, Update, Delete, Get Input, and Update Input. Create and Update Input wrap the `input_json` field as `input.parameters.custom`, matching the CoreClaw saved task payload contract (a flat input makes a saved task un-runnable).
+- Generalized run input wrapping behind a `wrapsInput` spec flag so run_worker, create_worker_task, and update_worker_task_input all share the same `input.parameters.custom` wrapping.
+- Fixed abort operations (`Abort Last`, `Abort Worker Last Run`) to send no request body, matching the CoreClaw v2 API (abort has no documented body). `Abort Worker Run` was already correct.
+- Added unit tests for the new task CRUD request bodies, the wrapsInput flag, and the abort-body invariant; added a live end-to-end test that creates, reads, updates input, and deletes a worker task.
+- Operation count is now 34 (was 28).
+
 ## 0.3.0
 
 - Added one-step **Run and Get Results** composite operations on Worker, Worker Task, and Worker Run (Rerun and Get Results). Each submits a run, polls to a terminal status, and returns the result rows as n8n items — mirroring Apify's "Run and get dataset items" UX.

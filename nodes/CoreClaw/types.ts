@@ -36,6 +36,14 @@ export interface CoreClawEndpointSpec {
 	supportsReturnAll?: boolean;
 	supportsWaitForFinish?: boolean;
 	/**
+	 * When true, the router wraps the `input_json` body parameter as
+	 * `input.parameters.custom` before sending it upstream — matching
+	 * CoreClaw's saved task payload contract. Set on run_worker,
+	 * create_worker_task, and update_worker_task_input. Without this, a
+	 * created task stores an unwrapped input that fails to run.
+	 */
+	wrapsInput?: boolean;
+	/**
 	 * Composite operations chain multiple API calls into one node (e.g. run a
 	 * worker, poll until it finishes, then return its result rows). They are
 	 * not executed through the standard single-request router path.

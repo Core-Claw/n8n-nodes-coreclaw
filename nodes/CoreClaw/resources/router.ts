@@ -49,10 +49,7 @@ export function buildRequestFromSpec(
 		if (param.location === 'body') body[param.name] = value;
 	}
 
-	const preparedBody =
-		spec.resource === 'worker' && spec.operation === 'run'
-			? prepareRunWorkerBody(body)
-			: compactBody(body);
+	const preparedBody = spec.wrapsInput ? prepareRunWorkerBody(body) : compactBody(body);
 
 	return {
 		method: spec.method,

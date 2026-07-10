@@ -46,7 +46,7 @@ Requests send both `api-key: <key>` and `Authorization: Bearer <key>`. The crede
 
 ## CoreClaw Node
 
-The action node exposes 28 CoreClaw API v2 operations.
+The action node exposes 34 CoreClaw API v2 operations.
 
 ### Store Worker
 
@@ -86,6 +86,12 @@ The action node exposes 28 CoreClaw API v2 operations.
 ### Worker Task
 
 - **List**
+- **Create** — save a worker config as a reusable, optionally scheduled task. Input JSON is sent as `input.parameters.custom`.
+- **Get**
+- **Update** — update title, description, or schedule (partial).
+- **Delete**
+- **Get Input** — read a saved task's input payload.
+- **Update Input** — replace a saved task's input (wrapped as `input.parameters.custom`).
 - **Run**
 - **Run and Get Results** *(run → wait → return result rows in one step)*
 
