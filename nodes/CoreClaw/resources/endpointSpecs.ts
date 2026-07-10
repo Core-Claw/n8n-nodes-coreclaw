@@ -98,7 +98,7 @@ const formatParam = (): CoreClawParamSpec => ({
 		{ name: 'HTML', value: 'html' },
 		{ name: 'RSS', value: 'rss' },
 	],
-	description: 'Export file format. Supports csv, json, jsonl, xlsx, xls, xml, html, rss (case-insensitive). Defaults to csv.',
+	description: 'Export file format. Supports CSV, JSON, JSONL, XLSX, XLS, XML, HTML, RSS (case-insensitive). Defaults to CSV.',
 });
 
 const filterKeysParam = (): CoreClawParamSpec => ({

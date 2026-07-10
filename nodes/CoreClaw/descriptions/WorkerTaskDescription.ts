@@ -337,7 +337,7 @@ export const workerTaskFields: INodeProperties[] = [
 		name: 'schedule_weekday',
 		type: 'options',
 		typeOptions: { minValue: 1, maxValue: 7 },
-		default: '',
+		default: 1,
 		displayOptions: {
 			show: {
 				resource: ['workerTask'],
