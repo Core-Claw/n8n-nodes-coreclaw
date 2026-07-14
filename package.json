@@ -37,6 +37,12 @@
 	},
 	"files": [
 		"dist",
+		"!dist/**/__tests__/**",
+		"!dist/**/__tests__",
+		"!dist/**/*.test.js",
+		"!dist/**/*.test.d.ts",
+		"!dist/**/*.test.js.map",
+		"!dist/**/*.map",
 		"CHANGELOG.md"
 	],
 	"publishConfig": {
