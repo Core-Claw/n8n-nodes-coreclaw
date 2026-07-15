@@ -729,10 +729,26 @@ function buildRunAndGetResultsSpecs(): CoreClawEndpointSpec[] {
 		(spec) => spec.resource === 'workerRun' && spec.operation === 'rerun',
 	)!;
 
-	const resultPaginationParams: CoreClawParamSpec[] = [
-		offsetParam(),
-		limitParam(),
-	];
+	// Composite operations only surface the trigger's identifying/input params
+	// (workerId / workerTaskId / runId / version / input_json / raw_input_json).
+	// They explicitly MUST NOT carry the trigger's runBodyParams (callback_url /
+	// is_async / body offset+limit): the composite executor forces is_async=true
+	// and polls client-side, and the node description (WorkerDescription.ts)
+	// only displays those runBodyParams fields for run / rerunLastRun /
+	// abortLastRun — never for runAndGetResults. Spreading them here made
+	// collectParams() call getNodeParameter() with extractValue:true on a field
+	// whose displayOptions hide it, throwing "Could not find property".
+	//
+	// Result pagination (offset/limit) is likewise read directly in
+	// executeRunAndGetResults (router.ts) via getNodeParameter without
+	// extractValue, so it tolerates the limit field being hidden when
+	// returnAll=true; it must not live in spec.params either.
+	const compositeInputParams = (trigger: CoreClawEndpointSpec): CoreClawParamSpec[] =>
+		trigger.params.filter((p) =>
+			['workerId', 'workerTaskId', 'runId', 'version', 'input_json', 'raw_input_json'].includes(
+				p.name,
+			),
+		);
 
 	return [
 		{
@@ -747,7 +763,7 @@ function buildRunAndGetResultsSpecs(): CoreClawEndpointSpec[] {
 			compositeTrigger: workerRunTrigger,
 			returnsList: true,
 			supportsReturnAll: true,
-			params: [...workerRunTrigger.params, ...resultPaginationParams],
+			params: compositeInputParams(workerRunTrigger),
 		},
 		{
 			resource: 'workerTask',
@@ -761,7 +777,7 @@ function buildRunAndGetResultsSpecs(): CoreClawEndpointSpec[] {
 			compositeTrigger: workerTaskRunTrigger,
 			returnsList: true,
 			supportsReturnAll: true,
-			params: [...workerTaskRunTrigger.params, ...resultPaginationParams],
+			params: compositeInputParams(workerTaskRunTrigger),
 		},
 		{
 			resource: 'workerRun',
@@ -775,7 +791,7 @@ function buildRunAndGetResultsSpecs(): CoreClawEndpointSpec[] {
 			compositeTrigger: workerRunRerunTrigger,
 			returnsList: true,
 			supportsReturnAll: true,
-			params: [...workerRunRerunTrigger.params, ...resultPaginationParams],
+			params: compositeInputParams(workerRunRerunTrigger),
 		},
 	];
 }

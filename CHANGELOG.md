@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Fixed `Run and Get Results` (and `Rerun and Get Results`) failing with `NodeOperationError: Could not find property`. The composite specs spread the trigger's `runBodyParams` (`callback_url` / `is_async` / body `offset`+`limit`) and result pagination into `spec.params`, but `WorkerDescription` only displays those fields for `run` / `rerunLastRun` / `abortLastRun` — never for the composite operations — so `collectParams`' `getNodeParameter(..., { extractValue: true })` threw. Composite specs now surface only the trigger's identifying/input params (`workerId` / `workerTaskId` / `runId` / `version` / `input_json` / `raw_input_json`); result `offset` / `limit` are read directly in `executeRunAndGetResults` without `extractValue`, so they tolerate the `limit` field being hidden when `returnAll` is true. Verified end-to-end against a live CoreClaw run.
+
 ## 0.4.0
 
 - Added **Worker Task CRUD** operations: Create, Get, Update, Delete, Get Input, and Update Input. Create and Update Input wrap the `input_json` field as `input.parameters.custom`, matching the CoreClaw saved task payload contract (a flat input makes a saved task un-runnable).

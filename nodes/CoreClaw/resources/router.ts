@@ -145,9 +145,14 @@ async function executeRunAndGetResults(
 		throw new NodeOperationError(this.getNode(), 'CoreClaw run did not return a run id', { itemIndex });
 	}
 
+	// offset/limit are read directly (without extractValue) so they tolerate the
+	// limit field being hidden by displayOptions when returnAll=true. They are
+	// intentionally absent from the composite spec.params — see endpointSpecs.ts.
+	const offset = this.getNodeParameter('offset', itemIndex, 0) as number;
+	const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 	const rows = returnAll
 		? await fetchAllResultRows.call(this, runId, RETURN_ALL_MAX_ROWS)
-		: await fetchResultPage.call(this, runId, Number(params.offset ?? 0), Number(params.limit ?? 50));
+		: await fetchResultPage.call(this, runId, Number(offset) || 0, Number(limit) || 50);
 
 	return this.helpers.returnJsonArray(rows);
 }
