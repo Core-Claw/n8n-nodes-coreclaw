@@ -1,8 +1,16 @@
 # n8n-nodes-coreclaw
 
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="n8n-nodes-coreclaw: a CoreClaw API v2 action node with 34 operations plus a callback trigger node.">
+</p>
+
 Use [CoreClaw](https://coreclaw.com) API v2 in n8n to discover workers, run workers and saved tasks, manage worker runs, fetch results, export data, inspect account state, and receive run callbacks.
 
 [n8n](https://n8n.io/) is a workflow automation platform. This package provides:
+
+<p align="center">
+  <img src="./assets/readme/section-nodes.svg" width="100%" alt="01 Two nodes, one package: a CoreClaw action node and a CoreClaw callback trigger node.">
+</p>
 
 - **CoreClaw**: an action node for CoreClaw API v2 workers, worker runs, worker tasks, store workers, proxy regions, and account data.
 - **CoreClaw Trigger**: a webhook trigger node for CoreClaw `callback_url` run events.
@@ -239,3 +247,9 @@ See [CHANGELOG.md](./CHANGELOG.md).
 ## License
 
 [MIT](./LICENSE)
+
+---
+
+<p align="center">
+  <img src="./assets/readme/signature.svg" width="100%" alt="README made with beautify-github-readme">
+</p>
