@@ -48,14 +48,14 @@ const offsetField = (operations: string[]): INodeProperties => ({
 	typeOptions: {
 		minValue: 0,
 	},
-	default: 0,
+	default: 1,
 	displayOptions: {
 		show: {
 			resource: ['workerRun'],
 			operation: operations,
 		},
 	},
-	description: 'Number of records to skip',
+	description: 'Page number, 1-based. offset=1 is page 1; offset=0 is accepted as page 1.',
 });
 
 const limitField = (operations: string[], onlyWhenReturnAllIsFalse: boolean): INodeProperties => ({

@@ -39,7 +39,7 @@ describe('router request building', () => {
 		expect(spec).toBeDefined();
 
 		const request = buildRequestFromSpec(spec!, {
-			offset: 0,
+			offset: 1,
 			limit: 20,
 			status: 'succeeded',
 			worker_id: 'demo',
@@ -48,7 +48,7 @@ describe('router request building', () => {
 		expect(request).toMatchObject({
 			method: 'GET',
 			path: '/api/v2/worker-runs',
-			qs: { offset: 0, limit: 20, status: 'succeeded', worker_id: 'demo' },
+			qs: { offset: 1, limit: 20, status: 'succeeded', worker_id: 'demo' },
 		});
 	});
 
@@ -149,7 +149,7 @@ describe('routeCoreClawOperation', () => {
 			workerId: 'demo',
 			input_json: { keyword: 'coffee' },
 			is_async: true,
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			waitForFinish: true,
 		});
@@ -180,7 +180,7 @@ describe('routeCoreClawOperation', () => {
 			input_json: '',
 			raw_input_json: { parameters: { custom: { keyword: 'tea' } } },
 			is_async: true,
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			waitForFinish: false,
 		});
@@ -192,7 +192,7 @@ describe('routeCoreClawOperation', () => {
 				body: {
 					input: { parameters: { custom: { keyword: 'tea' } } },
 					is_async: true,
-					offset: 0,
+					offset: 1,
 					limit: 50,
 				},
 			}),
@@ -210,7 +210,7 @@ describe('routeCoreClawOperation', () => {
 			resource: 'worker',
 			operation: 'list',
 			returnAll: true,
-			offset: 0,
+			offset: 1,
 		});
 
 		const result = await routeCoreClawOperation.call(context, 0);
@@ -218,10 +218,10 @@ describe('routeCoreClawOperation', () => {
 		expect(result).toHaveLength(125);
 		expect(mockedRequest).toHaveBeenCalledTimes(2);
 		expect(mockedRequest.mock.calls[0][0]).toMatchObject({
-			qs: { offset: 0, limit: 100 },
+			qs: { offset: 1, limit: 100 },
 		});
 		expect(mockedRequest.mock.calls[1][0]).toMatchObject({
-			qs: { offset: 100, limit: 100 },
+			qs: { offset: 2, limit: 100 },
 		});
 	});
 
@@ -239,7 +239,7 @@ describe('routeCoreClawOperation', () => {
 			resource: 'worker',
 			operation: 'list',
 			returnAll: true,
-			offset: 0,
+			offset: 1,
 		});
 
 		const result = await routeCoreClawOperation.call(context, 0);
@@ -247,7 +247,7 @@ describe('routeCoreClawOperation', () => {
 		expect(result).toHaveLength(10000);
 		expect(mockedRequest).toHaveBeenCalledTimes(100);
 		expect(mockedRequest.mock.calls[99][0]).toMatchObject({
-			qs: { offset: 9900, limit: 100 },
+			qs: { offset: 100, limit: 100 },
 		});
 	});
 });

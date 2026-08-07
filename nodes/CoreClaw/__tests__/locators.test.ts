@@ -95,7 +95,7 @@ describe('locatorMethods', () => {
 		{
 			method: 'searchStoreWorkers',
 			path: '/api/v2/store',
-			qs: { keyword: 'coffee', offset: 0, limit: 50 },
+			qs: { keyword: 'coffee', offset: 1, limit: 50 },
 			data: { items: [{ title: 'Store Worker', path: 'owner/demo worker' }] },
 			results: [
 				{
@@ -109,7 +109,7 @@ describe('locatorMethods', () => {
 		{
 			method: 'searchWorkers',
 			path: '/api/v2/workers',
-			qs: { keyword: 'coffee', offset: 0, limit: 50 },
+			qs: { keyword: 'coffee', offset: 1, limit: 50 },
 			data: { items: [{ title: 'My Worker', worker_id: 'worker-1', description: 'Demo' }] },
 			results: [
 				{
@@ -123,7 +123,7 @@ describe('locatorMethods', () => {
 		{
 			method: 'searchWorkerTasks',
 			path: '/api/v2/worker-tasks',
-			qs: { keyword: 'coffee', offset: 0, limit: 50 },
+			qs: { keyword: 'coffee', offset: 1, limit: 50 },
 			data: { items: [{ title: 'Daily Report', worker_task_id: 'task-1', worker_id: 'worker-1' }] },
 			results: [
 				{
@@ -136,7 +136,7 @@ describe('locatorMethods', () => {
 		{
 			method: 'searchWorkerRuns',
 			path: '/api/v2/worker-runs',
-			qs: { worker_id: 'coffee', offset: 0, limit: 50 },
+			qs: { worker_id: 'coffee', offset: 1, limit: 50 },
 			data: { items: [{ run_id: 'run-1', run_status: 'succeeded', worker_id: 'worker-1' }] },
 			results: [
 				{

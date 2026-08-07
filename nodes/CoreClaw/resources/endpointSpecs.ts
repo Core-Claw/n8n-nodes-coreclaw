@@ -8,8 +8,8 @@ const offsetParam = (): CoreClawParamSpec => ({
 	displayName: 'Offset',
 	location: 'query',
 	type: 'number',
-	default: 0,
-	description: 'Result offset. Must be 0 or greater.',
+	default: 1,
+	description: 'Page number, 1-based. offset=1 is page 1; offset=0 is accepted as page 1.',
 });
 
 const limitParam = (): CoreClawParamSpec => ({

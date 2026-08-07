@@ -17,5 +17,7 @@ export function extractItems(data: unknown): IDataObject[] | undefined {
 }
 
 export function nextOffset(currentOffset: number, rows: IDataObject[]): number {
-	return currentOffset + rows.length;
+	// CoreClaw uses 1-based page numbering: offset is the page number, not a
+	// row skip count. Increment by 1 to advance to the next page.
+	return currentOffset + 1;
 }

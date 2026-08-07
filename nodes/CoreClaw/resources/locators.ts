@@ -49,7 +49,7 @@ export const locatorMethods = {
 		const data = await coreClawApiRequest.call(this, {
 			method: 'GET',
 			path: '/api/v2/store',
-			qs: { keyword: filter || '', offset: 0, limit: 50 },
+			qs: { keyword: filter || '', offset: 1, limit: 50 },
 			retrySafe: true,
 		});
 		return { results: normalizeList(data).map(formatWorkerOption).filter((option) => option.value) };
@@ -59,7 +59,7 @@ export const locatorMethods = {
 		const data = await coreClawApiRequest.call(this, {
 			method: 'GET',
 			path: '/api/v2/workers',
-			qs: { keyword: filter || '', offset: 0, limit: 50 },
+			qs: { keyword: filter || '', offset: 1, limit: 50 },
 			retrySafe: true,
 		});
 		return { results: normalizeList(data).map(formatWorkerOption).filter((option) => option.value) };
@@ -69,7 +69,7 @@ export const locatorMethods = {
 		const data = await coreClawApiRequest.call(this, {
 			method: 'GET',
 			path: '/api/v2/worker-tasks',
-			qs: { keyword: filter || '', offset: 0, limit: 50 },
+			qs: { keyword: filter || '', offset: 1, limit: 50 },
 			retrySafe: true,
 		});
 		return { results: normalizeList(data).map(formatWorkerTaskOption).filter((option) => option.value) };
@@ -79,7 +79,7 @@ export const locatorMethods = {
 		const data = await coreClawApiRequest.call(this, {
 			method: 'GET',
 			path: '/api/v2/worker-runs',
-			qs: { worker_id: filter || '', offset: 0, limit: 50 },
+			qs: { worker_id: filter || '', offset: 1, limit: 50 },
 			retrySafe: true,
 		});
 		return { results: normalizeList(data).map(formatRunOption).filter((option) => option.value) };

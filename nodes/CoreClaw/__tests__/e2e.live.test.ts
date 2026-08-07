@@ -38,7 +38,7 @@ live('CoreClaw live API v2 smoke tests', () => {
 	});
 
 	it('lists store workers', async () => {
-		const data = await request('/api/v2/store?offset=0&limit=1');
+		const data = await request('/api/v2/store?offset=1&limit=1');
 		expect(data).toBeDefined();
 	});
 
@@ -48,12 +48,12 @@ live('CoreClaw live API v2 smoke tests', () => {
 	});
 
 	it('lists worker runs', async () => {
-		const data = await request('/api/v2/worker-runs?offset=0&limit=1');
+		const data = await request('/api/v2/worker-runs?offset=1&limit=1');
 		expect(data).toBeDefined();
 	});
 
 	it('lists worker tasks', async () => {
-		const data = await request('/api/v2/worker-tasks?offset=0&limit=1');
+		const data = await request('/api/v2/worker-tasks?offset=1&limit=1');
 		expect(data).toBeDefined();
 	});
 

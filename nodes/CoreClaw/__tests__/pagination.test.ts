@@ -21,7 +21,7 @@ describe('pagination helpers', () => {
 		expect(extractItems({ id: 1, title: 'single object' })).toBeUndefined();
 	});
 
-	it('increments offset by fetched row count', () => {
-		expect(nextOffset(20, [{}, {}, {}])).toBe(23);
+	it('increments offset by one (page index)', () => {
+		expect(nextOffset(20, [{}, {}, {}])).toBe(21);
 	});
 });

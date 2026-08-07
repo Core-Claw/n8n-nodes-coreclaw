@@ -46,7 +46,7 @@ describe('composite run-and-get-results operations', () => {
 			version: '',
 			raw_input_json: '',
 			is_async: false, // should be forced to true by the composite executor
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			returnAll: false,
 		});
@@ -73,7 +73,7 @@ describe('composite run-and-get-results operations', () => {
 		expect(mockedRequest.mock.calls[3][0]).toMatchObject({
 			method: 'GET',
 			path: '/api/v2/worker-runs/run-1/result',
-			qs: { offset: 0, limit: 50 },
+			qs: { offset: 1, limit: 50 },
 			retrySafe: true,
 		});
 	});
@@ -88,7 +88,7 @@ describe('composite run-and-get-results operations', () => {
 			resource: 'workerTask',
 			operation: 'runAndGetResults',
 			workerTaskId: 'task_abc',
-			offset: 0,
+			offset: 1,
 			limit: 10,
 			returnAll: false,
 		});
@@ -113,7 +113,7 @@ describe('composite run-and-get-results operations', () => {
 			resource: 'workerRun',
 			operation: 'rerunAndGetResults',
 			runId: 'run-original-1',
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			returnAll: false,
 		});
@@ -144,7 +144,7 @@ describe('composite run-and-get-results operations', () => {
 			raw_input_json: '',
 			version: '',
 			is_async: true,
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			returnAll: true,
 		});
@@ -152,8 +152,8 @@ describe('composite run-and-get-results operations', () => {
 		const result = await routeCoreClawOperation.call(context, 0);
 
 		expect(result).toHaveLength(102);
-		expect(mockedRequest.mock.calls[2][0]).toMatchObject({ qs: { offset: 0, limit: 100 } });
-		expect(mockedRequest.mock.calls[3][0]).toMatchObject({ qs: { offset: 100, limit: 100 } });
+		expect(mockedRequest.mock.calls[2][0]).toMatchObject({ qs: { offset: 1, limit: 100 } });
+		expect(mockedRequest.mock.calls[3][0]).toMatchObject({ qs: { offset: 2, limit: 100 } });
 	});
 
 	it('surfaces the run log when the run fails', async () => {
@@ -170,7 +170,7 @@ describe('composite run-and-get-results operations', () => {
 			raw_input_json: '',
 			version: '',
 			is_async: true,
-			offset: 0,
+			offset: 1,
 			limit: 50,
 			returnAll: false,
 		});

@@ -64,13 +64,13 @@ describe('prepareRunWorkerBody', () => {
 				version: '',
 				callback_url: 'https://n8n.example/webhook/coreclaw',
 				is_async: false,
-				offset: 0,
+				offset: 1,
 				limit: 20,
 			}),
 		).toEqual({
 			callback_url: 'https://n8n.example/webhook/coreclaw',
 			is_async: false,
-			offset: 0,
+			offset: 1,
 			limit: 20,
 		});
 	});

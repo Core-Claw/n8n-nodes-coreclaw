@@ -148,11 +148,11 @@ async function executeRunAndGetResults(
 	// offset/limit are read directly (without extractValue) so they tolerate the
 	// limit field being hidden by displayOptions when returnAll=true. They are
 	// intentionally absent from the composite spec.params — see endpointSpecs.ts.
-	const offset = this.getNodeParameter('offset', itemIndex, 0) as number;
+	const offset = this.getNodeParameter('offset', itemIndex, 1) as number;
 	const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 	const rows = returnAll
 		? await fetchAllResultRows.call(this, runId, RETURN_ALL_MAX_ROWS)
-		: await fetchResultPage.call(this, runId, Number(offset) || 0, Number(limit) || 50);
+		: await fetchResultPage.call(this, runId, Number(offset) || 1, Number(limit) || 50);
 
 	return this.helpers.returnJsonArray(rows);
 }
@@ -178,7 +178,7 @@ async function fetchAllResultRows(
 	maxRows: number,
 ): Promise<IDataObject[]> {
 	const rows: IDataObject[] = [];
-	let offset = 0;
+	let offset = 1;
 
 	while (rows.length < maxRows) {
 		const pageRows = await fetchResultPage.call(this, runId, offset, Math.min(PAGE_SIZE_LIMIT, maxRows - rows.length));
@@ -292,7 +292,7 @@ async function requestAllPages(
 	maxRows: number,
 ): Promise<IDataObject[]> {
 	const rows: IDataObject[] = [];
-	let offset = Number(params.offset ?? 0);
+	let offset = Number(params.offset ?? 1);
 
 	while (rows.length < maxRows) {
 		const request = buildRequestFromSpec(spec, {

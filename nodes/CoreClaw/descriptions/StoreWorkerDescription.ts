@@ -44,14 +44,14 @@ export const storeWorkerFields: INodeProperties[] = [
 		typeOptions: {
 			minValue: 0,
 		},
-		default: 0,
+		default: 1,
 		displayOptions: {
 			show: {
 				resource: ['storeWorker'],
 				operation: ['list'],
 			},
 		},
-		description: 'Number of store workers to skip',
+		description: 'Page number, 1-based. offset=1 is page 1; offset=0 is accepted as page 1.',
 	},
 	{
 		displayName: 'Limit',
