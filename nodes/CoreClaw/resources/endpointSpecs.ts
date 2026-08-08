@@ -41,7 +41,8 @@ const workerIdPathParam = (): CoreClawParamSpec => ({
 	type: 'string',
 	default: '',
 	required: true,
-	description: 'Worker slug or owner path, such as demo-worker or owner~demo-worker',
+	description:
+		'Worker slug or owner path, such as demo-worker or owner~demo-worker. You may paste owner/name; it is converted to owner~name before sending.',
 });
 
 const runIdPathParam = (): CoreClawParamSpec => ({
@@ -62,6 +63,48 @@ const workerTaskIdPathParam = (): CoreClawParamSpec => ({
 	default: '',
 	required: true,
 	description: 'Saved worker task identifier returned by the list worker tasks operation',
+});
+
+const queueIdPathParam = (): CoreClawParamSpec => ({
+	name: 'queueId',
+	displayName: 'Queue ID',
+	location: 'path',
+	type: 'string',
+	default: '',
+	required: true,
+	description: 'Queue item ID (queue_ref). Obtain from list run queue items.',
+});
+
+const queueRefsParam = (): CoreClawParamSpec => ({
+	name: 'queue_refs',
+	displayName: 'Queue Refs',
+	location: 'body',
+	type: 'json',
+	default: '',
+	required: true,
+	description: 'JSON array of queue item IDs to activate or release, e.g. ["22","23"]. Obtain queue_ref values from list run queue items.',
+});
+
+const runQueueStatusParam = (): CoreClawParamSpec => ({
+	name: 'status',
+	displayName: 'Status',
+	location: 'query',
+	type: 'string',
+	default: '',
+	options: [
+		{ name: 'Waiting', value: 'waiting' },
+		{ name: 'Inactive', value: 'inactive' },
+	],
+	description: 'Filter by queue item status',
+});
+
+const reasonParam = (): CoreClawParamSpec => ({
+	name: 'reason',
+	displayName: 'Reason',
+	location: 'body',
+	type: 'string',
+	default: '',
+	description: 'Optional reason for releasing queue items, recorded for later reference',
 });
 
 const isAsyncParam = (): CoreClawParamSpec => ({
@@ -253,6 +296,7 @@ export const excludedEndpointKeys = [
 	'POST /api/v2/workers/{workerId}/versions',
 	'PUT /api/v2/workers/{workerId}/versions/{version}',
 	'GET /api/v2/workers/{workerId}/internal',
+	'GET /api/v2/queued-worker-runs',
 ] as const;
 
 export const endpointSpecs: CoreClawEndpointSpec[] = [
@@ -337,6 +381,22 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 					{ name: 'Aborting', value: 'aborting' },
 				],
 				description: 'Filter by run status',
+			},
+			{
+				name: 'start_time',
+				displayName: 'Start Time',
+				location: 'query',
+				type: 'number',
+				default: '',
+				description: 'Filter by created_at start time, Unix seconds. Requires end_time; both must be in the same calendar month. Without start_time/end_time, only the current month\'s runs are returned.',
+			},
+			{
+				name: 'end_time',
+				displayName: 'End Time',
+				location: 'query',
+				type: 'number',
+				default: '',
+				description: 'Filter by created_at end date, Unix seconds at 00:00:00. Server adds 86400s to include the whole day. Must be in the same calendar month as start_time.',
 			},
 		],
 	},
@@ -703,6 +763,93 @@ export const endpointSpecs: CoreClawEndpointSpec[] = [
 		returnsList: true,
 		supportsReturnAll: true,
 		params: [workerIdPathParam(), offsetParam(), limitParam()],
+	},
+	{
+		resource: 'runQueue',
+		operation: 'queueRun',
+		displayName: 'Queue Run',
+		action: 'Queue a worker run',
+		method: 'POST',
+		path: '/api/v2/workers/{workerId}/queued-runs',
+		auth: true,
+		wrapsInput: true,
+		params: [
+			workerIdPathParam(),
+			{
+				name: 'version',
+				displayName: 'Version',
+				location: 'body',
+				type: 'string',
+				default: '',
+				description: 'Worker script version. Leave empty to use backend default.',
+			},
+			{
+				name: 'input_json',
+				displayName: 'Input JSON',
+				location: 'body',
+				type: 'json',
+				default: '',
+				description: 'Worker business input JSON. Wrapped as input.parameters.custom.',
+			},
+			{
+				name: 'raw_input_json',
+				displayName: 'Raw Input JSON',
+				location: 'body',
+				type: 'json',
+				default: '',
+				description: 'Advanced full CoreClaw input object. Do not combine with Input JSON.',
+			},
+			// Queue Run surfaces only the body params the node UI actually
+			// renders for this operation (RunQueueDescription.ts). The queued-run
+			// endpoint accepts offset/limit "for API consistency" but they have
+			// no effect on the queue_ref response, and spreading runBodyParams()
+			// here (as in 0.4.1) made collectParams() throw "Could not find
+			// property" on the hidden offset/limit fields.
+			callbackUrlParam(),
+			isAsyncParam(),
+		],
+	},
+	{
+		resource: 'runQueue',
+		operation: 'list',
+		displayName: 'List Items',
+		action: 'List run queue items',
+		method: 'GET',
+		path: '/api/v2/run-queue/items',
+		auth: true,
+		returnsList: true,
+		supportsReturnAll: true,
+		params: [offsetParam(), limitParam(), runQueueStatusParam()],
+	},
+	{
+		resource: 'runQueue',
+		operation: 'activate',
+		displayName: 'Activate Items',
+		action: 'Activate run queue items',
+		method: 'POST',
+		path: '/api/v2/run-queue/items/activate',
+		auth: true,
+		params: [queueRefsParam()],
+	},
+	{
+		resource: 'runQueue',
+		operation: 'release',
+		displayName: 'Release Items',
+		action: 'Release run queue items',
+		method: 'POST',
+		path: '/api/v2/run-queue/items/release',
+		auth: true,
+		params: [queueRefsParam(), reasonParam()],
+	},
+	{
+		resource: 'runQueue',
+		operation: 'releaseOne',
+		displayName: 'Release One Item',
+		action: 'Release one run queue item',
+		method: 'POST',
+		path: '/api/v2/run-queue/items/{queueId}/release',
+		auth: true,
+		params: [queueIdPathParam(), reasonParam()],
 	},
 ];
 

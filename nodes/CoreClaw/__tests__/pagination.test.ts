@@ -22,6 +22,6 @@ describe('pagination helpers', () => {
 	});
 
 	it('increments offset by one (page index)', () => {
-		expect(nextOffset(20, [{}, {}, {}])).toBe(21);
+		expect(nextOffset(20)).toBe(21);
 	});
 });

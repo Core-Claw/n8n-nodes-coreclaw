@@ -1,7 +1,7 @@
 # n8n-nodes-coreclaw
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="n8n-nodes-coreclaw: a CoreClaw API v2 action node with 34 operations plus a callback trigger node.">
+  <img src="./assets/readme/hero.svg" width="100%" alt="n8n-nodes-coreclaw: a CoreClaw API v2 action node with 39 operations plus a callback trigger node.">
 </p>
 
 Use [CoreClaw](https://coreclaw.com) API v2 in n8n to discover workers, run workers and saved tasks, manage worker runs, fetch results, export data, inspect account state, and receive run callbacks.
@@ -54,7 +54,7 @@ Requests send both `api-key: <key>` and `Authorization: Bearer <key>`. The crede
 
 ## CoreClaw Node
 
-The action node exposes 34 CoreClaw API v2 operations.
+The action node exposes 39 CoreClaw API v2 operations.
 
 ### Store Worker
 
@@ -76,7 +76,7 @@ The action node exposes 34 CoreClaw API v2 operations.
 
 ### Worker Run
 
-- **List**
+- **List** — supports optional `start_time` and `end_time` Unix-second filters on `created_at`. Supply both together within the same calendar month; when omitted, CoreClaw returns the current month's runs.
 - **Get Last**
 - **Abort Last**
 - **Export Last Results**
@@ -102,6 +102,14 @@ The action node exposes 34 CoreClaw API v2 operations.
 - **Update Input** — replace a saved task's input (wrapped as `input.parameters.custom`).
 - **Run**
 - **Run and Get Results** *(run → wait → return result rows in one step)*
+
+### Run Queue
+
+- **Queue Run** — queue a worker run for later activation. Input JSON is sent as `input.parameters.custom`. Returns a `queue_ref`.
+- **List Items** — list run queue items, optionally filtered by status (`waiting`, `inactive`).
+- **Activate Items** — activate one or more queued items so they start executing. Body: `{"queue_refs":["22","23"]}`.
+- **Release Items** — release (discard) one or more queued items in bulk. Body: `{"queue_refs":["22","23"],"reason":"optional"}`.
+- **Release One Item** — release a single queued item by `queueId`. Body: `{"reason":"optional"}`.
 
 ### Proxy
 
@@ -206,6 +214,7 @@ Enable **Continue On Fail** in n8n to emit an item containing `error` and `error
 | **Credential test fails with `CoreClaw error 12001/12002`** | Invalid API key. Regenerate the key in the CoreClaw console and paste it into the credential. |
 | **`Resource not found` (CoreClaw error 11004/50001/70001)`** | Wrong ID. Use the resource locator's **From List** mode to pick a valid worker/task/run, or verify the slug/owner path format (`owner~demo-worker`). |
 | **`Insufficient balance` (CoreClaw error 30001)** | Top up the CoreClaw account before running workers. |
+| **`PLAN_CONCURRENCY_LIMITED` (CoreClaw error 30003)** | The plan's concurrent run limit has been reached. Wait for existing runs to finish before starting or activating more. |
 | **Run and Get Results never returns** | The run may exceed the ~4-minute polling budget. Switch to asynchronous **Worker > Run** + **CoreClaw Trigger** with `callback_url` for long jobs. |
 | **Run and Get Results returns a `failed`/`aborted` error** | The node attaches the run log to the error description. Open the node's error output or check **Continue On Fail** output for the `errorDescription` containing the log. |
 | **Empty result rows on a succeeded run** | The worker produced no results. Inspect the run with **Worker Run > Get Log** and validate the input against **Worker > Get Input Schema**. |
@@ -227,7 +236,7 @@ Without both environment variables, the live suite is skipped.
 
 ## Endpoint Scope
 
-This package intentionally does not expose `POST /api/v2/workers/{workerId}/versions`, `PUT /api/v2/workers/{workerId}/versions/{version}`, or `GET /api/v2/workers/{workerId}/internal`.
+This package intentionally does not expose `POST /api/v2/workers/{workerId}/versions`, `PUT /api/v2/workers/{workerId}/versions/{version}`, `GET /api/v2/workers/{workerId}/internal`, or `GET /api/v2/queued-worker-runs`. The remaining 39 public API v2 operations are exposed, including the five Run Queue operations (`POST /workers/{workerId}/queued-runs`, `GET /run-queue/items`, `POST /run-queue/items/activate`, `POST /run-queue/items/release`, `POST /run-queue/items/{queueId}/release`).
 
 ## Compatibility
 

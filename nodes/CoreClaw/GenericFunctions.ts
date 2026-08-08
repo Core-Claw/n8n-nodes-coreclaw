@@ -91,7 +91,8 @@ export function unwrapCoreClawEnvelope(this: CoreClawContext, response: CoreClaw
 		const error = new NodeApiError(this.getNode(), response as unknown as JsonObject, {
 			message: `CoreClaw error ${response.code}`,
 			description,
-			httpCode: String(response.code),
+			// CoreClaw application codes (e.g. 30003, 13000) are business-layer
+			// codes, not HTTP statuses; do not surface them as httpCode.
 		});
 		Object.assign(error, {
 			coreclawCode: response.code,

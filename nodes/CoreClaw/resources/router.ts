@@ -25,7 +25,16 @@ const ROUTER_NODE: INode = {
 };
 
 export function replacePathParams(path: string, params: IDataObject): string {
-	return path.replace(/\{([^}]+)\}/g, (_, name: string) => encodeURIComponent(String(params[name] ?? '')));
+	return path.replace(/\{([^}]+)\}/g, (_, name: string) => {
+		let value = String(params[name] ?? '');
+		// Worker identifiers accept owner/name as a convenience form; the API
+		// resolves owner~name in the path, so convert the slash before encoding
+		// (an encoded %2F would be treated as a different route segment).
+		if (name === 'workerId' || name === 'worker_id') {
+			value = value.split('/').join('~');
+		}
+		return encodeURIComponent(value);
+	});
 }
 
 export function buildRequestFromSpec(
@@ -39,7 +48,7 @@ export function buildRequestFromSpec(
 
 	for (const param of spec.params) {
 		const value = params[param.name];
-		if (param.location === 'path' && param.required && isBlank(value)) {
+		if (param.required && isBlank(value)) {
 			throw new NodeOperationError(node, `${param.displayName} is required`);
 		}
 		if (isBlank(value)) continue;
@@ -185,7 +194,7 @@ async function fetchAllResultRows(
 		if (pageRows.length === 0) break;
 		rows.push(...pageRows);
 		if (pageRows.length < PAGE_SIZE_LIMIT) break;
-		offset = nextOffset(offset, pageRows);
+		offset = nextOffset(offset);
 	}
 
 	return rows.slice(0, maxRows);
@@ -292,7 +301,10 @@ async function requestAllPages(
 	maxRows: number,
 ): Promise<IDataObject[]> {
 	const rows: IDataObject[] = [];
-	let offset = Number(params.offset ?? 1);
+	// offset is a 1-based page number; 0 is accepted as page 1 by the API, so
+	// normalize it before paginating to avoid re-fetching page 1 on the second
+	// loop iteration (nextOffset(0) === 1 === first page again).
+	let offset = Number(params.offset ?? 1) || 1;
 
 	while (rows.length < maxRows) {
 		const request = buildRequestFromSpec(spec, {
@@ -305,7 +317,7 @@ async function requestAllPages(
 		if (!pageRows || pageRows.length === 0) break;
 		rows.push(...pageRows);
 		if (pageRows.length < Number(request.qs?.limit ?? request.body?.limit ?? PAGE_SIZE_LIMIT)) break;
-		offset = nextOffset(offset, pageRows);
+		offset = nextOffset(offset);
 	}
 
 	return rows.slice(0, maxRows);

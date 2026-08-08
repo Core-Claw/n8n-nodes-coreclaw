@@ -5,6 +5,7 @@ export type CoreClawResource =
 	| 'worker'
 	| 'workerRun'
 	| 'workerTask'
+	| 'runQueue'
 	| 'proxy'
 	| 'account';
 

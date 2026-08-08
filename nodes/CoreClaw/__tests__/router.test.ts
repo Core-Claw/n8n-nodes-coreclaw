@@ -134,6 +134,143 @@ describe('router request building', () => {
 			input: { parameters: { custom: { keyword: 'coffee' } } },
 		});
 	});
+
+	it('wraps input_json as input.parameters.custom when queueing a worker run', () => {
+		const spec = getEndpointSpec('runQueue', 'queueRun');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			workerId: 'demo',
+			input_json: { keyword: 'coffee' },
+			is_async: true,
+		});
+
+		expect(request.method).toBe('POST');
+		expect(request.path).toBe('/api/v2/workers/demo/queued-runs');
+		expect(request.body).toEqual({
+			input: { parameters: { custom: { keyword: 'coffee' } } },
+			is_async: true,
+		});
+	});
+
+	it('maps run queue list query params including status', () => {
+		const spec = getEndpointSpec('runQueue', 'list');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			offset: 1,
+			limit: 20,
+			status: 'waiting',
+		});
+
+		expect(request).toMatchObject({
+			method: 'GET',
+			path: '/api/v2/run-queue/items',
+			qs: { offset: 1, limit: 20, status: 'waiting' },
+		});
+	});
+
+	it('sends queue_refs in the body when activating run queue items', () => {
+		const spec = getEndpointSpec('runQueue', 'activate');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			queue_refs: ['22', '23'],
+		});
+
+		expect(request.method).toBe('POST');
+		expect(request.path).toBe('/api/v2/run-queue/items/activate');
+		expect(request.body).toEqual({ queue_refs: ['22', '23'] });
+	});
+
+	it('sends queue_refs and reason in the body when releasing run queue items', () => {
+		const spec = getEndpointSpec('runQueue', 'release');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			queue_refs: ['22', '23'],
+			reason: 'no longer needed',
+		});
+
+		expect(request.method).toBe('POST');
+		expect(request.path).toBe('/api/v2/run-queue/items/release');
+		expect(request.body).toEqual({ queue_refs: ['22', '23'], reason: 'no longer needed' });
+	});
+
+	it('substitutes the queueId path placeholder when releasing a single run queue item', () => {
+		const spec = getEndpointSpec('runQueue', 'releaseOne');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			queueId: '22',
+			reason: 'duplicate',
+		});
+
+		expect(request.method).toBe('POST');
+		expect(request.path).toBe('/api/v2/run-queue/items/22/release');
+		expect(request.body).toEqual({ reason: 'duplicate' });
+	});
+
+	it('passes start_time and end_time as query params on workerRun.list', () => {
+		const spec = getEndpointSpec('workerRun', 'list');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			offset: 1,
+			limit: 20,
+			start_time: 1696118400,
+			end_time: 1696713600,
+		});
+
+		expect(request).toMatchObject({
+			method: 'GET',
+			path: '/api/v2/worker-runs',
+			qs: { offset: 1, limit: 20, start_time: 1696118400, end_time: 1696713600 },
+		});
+	});
+
+	it('throws when a required body parameter is blank (e.g. empty queue_refs)', () => {
+		const spec = getEndpointSpec('runQueue', 'activate');
+		expect(spec).toBeDefined();
+
+		const buildRequest = () => buildRequestFromSpec(spec!, { queue_refs: '' });
+
+		expect(buildRequest).toThrow(NodeOperationError);
+		expect(buildRequest).toThrow('Queue Refs is required');
+	});
+
+	it('converts owner/name worker paths to owner~name before URL encoding', () => {
+		const spec = getEndpointSpec('worker', 'run');
+		expect(spec).toBeDefined();
+
+		const request = buildRequestFromSpec(spec!, {
+			workerId: 'coreclaw/google-maps-scraper',
+			input_json: { keyword: 'coffee' },
+		});
+
+		expect(request.path).toBe('/api/v2/workers/coreclaw~google-maps-scraper/runs');
+	});
+
+	it('normalizes offset 0 to page 1 when fetching all pages', async () => {
+		const fullPage = Array.from({ length: 100 }, (_, i) => ({ slug: `r${i}` }));
+		mockedRequest
+			.mockResolvedValueOnce({ list: fullPage, count: 100 })
+			.mockResolvedValueOnce({ list: [], count: 0 });
+
+		const context = createRouteContext({
+			resource: 'workerRun',
+			operation: 'list',
+			returnAll: true,
+			offset: 0,
+			limit: 50,
+		});
+
+		await routeCoreClawOperation.call(context, 0);
+
+		// First page requested with offset 1 (0 normalized), second page offset 2.
+		expect(mockedRequest.mock.calls[0][0]).toMatchObject({ qs: { offset: 1 } });
+		expect(mockedRequest.mock.calls[1][0]).toMatchObject({ qs: { offset: 2 } });
+	});
 });
 
 describe('routeCoreClawOperation', () => {

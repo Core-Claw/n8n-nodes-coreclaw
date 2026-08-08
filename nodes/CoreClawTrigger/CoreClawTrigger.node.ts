@@ -40,8 +40,11 @@ export class CoreClawTrigger implements INodeType {
 		const validatePayload = this.getNodeParameter('validatePayload') as boolean;
 		const includeHeaders = this.getNodeParameter('includeHeaders') as boolean;
 
-		if (validatePayload && (body.run_id === undefined || body.run_status === undefined)) {
-			throw new NodeOperationError(this.getNode(), 'CoreClaw callback payload must include run_id and run_status');
+		if (validatePayload && (body.run_slug === undefined || body.run_status === undefined)) {
+			throw new NodeOperationError(
+				this.getNode(),
+				'CoreClaw callback payload must include run_slug and run_status (v2 callback contract)',
+			);
 		}
 
 		const status = String(body.run_status ?? '').toLowerCase();

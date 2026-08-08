@@ -300,6 +300,32 @@ export const workerRunFields: INodeProperties[] = [
 		description: 'Filter by worker slug or owner path',
 		placeholder: 'owner~demo-worker',
 	},
+	{
+		displayName: 'Start Time',
+		name: 'start_time',
+		type: 'number',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['workerRun'],
+				operation: ['list'],
+			},
+		},
+		description: 'Filter by created_at start time, Unix seconds. Requires End Time; both must be in the same calendar month. Without Start/End Time, only the current month\'s runs are returned.',
+	},
+	{
+		displayName: 'End Time',
+		name: 'end_time',
+		type: 'number',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['workerRun'],
+				operation: ['list'],
+			},
+		},
+		description: 'Filter by created_at end date, Unix seconds at 00:00:00. Server adds 86400s to include the whole day. Must be in the same calendar month as Start Time.',
+	},
 	callbackUrlField(runBodyOperations),
 	isAsyncField(runBodyOperations),
 	offsetField(runBodyOperations),

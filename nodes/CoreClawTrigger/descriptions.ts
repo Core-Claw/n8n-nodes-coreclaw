@@ -20,7 +20,7 @@ export const triggerProperties: INodeProperties[] = [
 		name: 'validatePayload',
 		type: 'boolean',
 		default: true,
-		description: 'Whether to require run_id and run_status in callback payloads',
+		description: 'Whether to require run_slug and run_status in callback payloads',
 	},
 	{
 		displayName: 'Include Headers',

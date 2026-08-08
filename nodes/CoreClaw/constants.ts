@@ -2,8 +2,6 @@ export const CORECLAW_DEFAULT_BASE_URL = 'https://openapi.coreclaw.com';
 
 export const CORECLAW_DEFAULT_TIMEOUT_MS = 60_000;
 
-export const CORECLAW_RESULT_LIMIT_MAX = 100;
-
 export const CORECLAW_TERMINAL_RUN_STATUSES = [
 	'succeeded',
 	'failed',
@@ -26,6 +24,7 @@ export const CORECLAW_ERROR_HINTS: Record<number, string> = {
 	13000: 'Rate limited: wait and retry.',
 	14000: 'Database error: retry later or contact CoreClaw support with the request ID.',
 	30001: 'Insufficient balance: top up the CoreClaw account before running workers.',
+	30003: 'Plan concurrency limit reached: wait for existing runs to finish before starting or activating more.',
 	50001: 'Worker not found: verify the worker ID or owner path.',
 	50002: 'Worker run failed: inspect run logs and validate input against the worker input schema.',
 	50003: 'Worker version unavailable: use a valid version or omit version for the backend default.',

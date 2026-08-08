@@ -12,6 +12,7 @@ import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workf
 
 import { accountFields, accountOperations } from './descriptions/AccountDescription';
 import { proxyFields, proxyOperations } from './descriptions/ProxyDescription';
+import { runQueueFields, runQueueOperations } from './descriptions/RunQueueDescription';
 import { storeWorkerFields, storeWorkerOperations } from './descriptions/StoreWorkerDescription';
 import { workerFields, workerOperations } from './descriptions/WorkerDescription';
 import { workerRunFields, workerRunOperations } from './descriptions/WorkerRunDescription';
@@ -58,6 +59,7 @@ export class CoreClaw implements INodeType {
 				options: [
 					{ name: 'Account', value: 'account' },
 					{ name: 'Proxy', value: 'proxy' },
+					{ name: 'Run Queue', value: 'runQueue' },
 					{ name: 'Store Worker', value: 'storeWorker' },
 					{ name: 'Worker', value: 'worker' },
 					{ name: 'Worker Run', value: 'workerRun' },
@@ -73,6 +75,8 @@ export class CoreClaw implements INodeType {
 			...workerRunFields,
 			...workerTaskOperations,
 			...workerTaskFields,
+			...runQueueOperations,
+			...runQueueFields,
 			...proxyOperations,
 			...proxyFields,
 			...accountOperations,
