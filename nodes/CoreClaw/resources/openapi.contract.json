@@ -1,0 +1,222 @@
+{
+  "_comment": "Snapshot of CoreClaw OpenAPI v2 operations. Regenerate from docs.coreclaw.com/openapi.json (a local sync script exists under scripts/, which is not committed). Public ops = published contract; knownUnpublishedOperations = endpoints in the service spec the docs site does not publish, maintained by hand.",
+  "operations": [
+    {
+      "method": "GET",
+      "path": "/api/v2/proxy/region",
+      "operationId": "listProxyRegions"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/run-queue/items/{queueId}/release",
+      "operationId": "releaseRunQueueItem"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/run-queue/items/activate",
+      "operationId": "activateRunQueueItems"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/run-queue/items/release",
+      "operationId": "releaseRunQueueItems"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/run-queue/items",
+      "operationId": "listRunQueueItems"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/store",
+      "operationId": "listStore"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/users/account",
+      "operationId": "getAccount"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-runs/{runId}/abort",
+      "operationId": "abortWorkerRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/{runId}/log",
+      "operationId": "getWorkerRunLog"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-runs/{runId}/rerun",
+      "operationId": "rerunWorkerRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/{runId}/result/export",
+      "operationId": "exportWorkerRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/{runId}/result",
+      "operationId": "listWorkerRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/{runId}",
+      "operationId": "getWorkerRun"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-runs/last/abort",
+      "operationId": "abortLastWorkerRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/last/export",
+      "operationId": "exportLastWorkerRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/last/log",
+      "operationId": "getLastWorkerRunLog"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-runs/last/rerun",
+      "operationId": "rerunLastWorkerRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/last/result",
+      "operationId": "listLastWorkerRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs/last",
+      "operationId": "getLastWorkerRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-runs",
+      "operationId": "listWorkerRuns"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-tasks/{workerTaskId}/input",
+      "operationId": "getWorkerTaskInput"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/worker-tasks/{workerTaskId}/input",
+      "operationId": "updateWorkerTaskInput"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-tasks/{workerTaskId}/runs",
+      "operationId": "runWorkerTask"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v2/worker-tasks/{workerTaskId}",
+      "operationId": "deleteWorkerTask"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-tasks/{workerTaskId}",
+      "operationId": "getWorkerTask"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/worker-tasks/{workerTaskId}",
+      "operationId": "updateWorkerTask"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/worker-tasks",
+      "operationId": "listWorkerTasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/worker-tasks",
+      "operationId": "createWorkerTask"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/input-schema",
+      "operationId": "getWorkerInputSchema"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workers/{workerId}/queued-runs",
+      "operationId": "queuedRunWorker"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workers/{workerId}/runs/last/abort",
+      "operationId": "abortWorkerLastRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/runs/last/export",
+      "operationId": "exportWorkerLastRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/runs/last/log",
+      "operationId": "getWorkerLastRunLog"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workers/{workerId}/runs/last/rerun",
+      "operationId": "rerunWorkerLastRun"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/runs/last/result",
+      "operationId": "listWorkerLastRunResults"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/runs/last",
+      "operationId": "getWorkerLastRun"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workers/{workerId}/runs",
+      "operationId": "runWorker"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}",
+      "operationId": "getWorker"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers",
+      "operationId": "listWorkers"
+    }
+  ],
+  "knownUnpublishedOperations": [
+    {
+      "method": "GET",
+      "path": "/api/v2/queued-worker-runs",
+      "operationId": "listQueuedWorkerRuns"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workers/{workerId}/internal",
+      "operationId": "getWorkerInternal"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workers/{workerId}/versions",
+      "operationId": "createWorkerVersion"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/workers/{workerId}/versions/{version}",
+      "operationId": "updateWorkerVersion"
+    }
+  ]
+}

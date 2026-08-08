@@ -4,6 +4,27 @@ import { CoreClaw } from '../CoreClaw.node';
 import { workerRunFields } from '../descriptions/WorkerRunDescription';
 import { workerTaskFields } from '../descriptions/WorkerTaskDescription';
 import { endpointSpecs, excludedEndpointKeys } from '../resources/endpointSpecs';
+import openapiContract from '../resources/openapi.contract.json';
+
+/** Every public operation the OpenAPI contract declares, keyed by method + path. */
+const publicContractKeys = new Set(
+	openapiContract.operations.map((op) => `${op.method} ${op.path}`),
+);
+
+/**
+ * Every operation the service spec knows about, public or not. The
+ * unpublished ones (worker-version, internal detail, queued-worker-runs list)
+ * exist in the service but are not published by the docs site; they are kept
+ * in the snapshot by hand so exclusions can still be validated against them.
+ */
+const serviceContractKeys = new Set([
+	...publicContractKeys,
+	...openapiContract.knownUnpublishedOperations.map((op) => `${op.method} ${op.path}`),
+]);
+
+/** Every operation the node implements, keyed by method + path. */
+const exposedKeys = () =>
+	new Set(endpointSpecs.map((spec) => `${spec.method} ${spec.path}`));
 
 function fieldNamesFor(fields: INodeProperties[], resource: string, operation: string) {
 	return fields
@@ -93,8 +114,38 @@ describe('CoreClaw API v2 endpoint scope', () => {
 		}
 	});
 
+	it('covers the full public OpenAPI v2 contract', () => {
+		// The snapshot in resources/openapi.contract.json is generated from
+		// docs.coreclaw.com/openapi.json. Every operation the public contract
+		// declares must be reachable from the node, so a new upstream endpoint
+		// fails the build until the node implements it (or explicitly excludes
+		// it in excludedEndpointKeys with a documented reason).
+		const exposed = exposedKeys();
+		const missing = [...publicContractKeys].filter((key) => !exposed.has(key));
+		expect(missing).toEqual([]);
+	});
+
+	it('does not implement operations absent from the contract or marked excluded', () => {
+		// The node must not drift ahead of the contract either: an endpoint the
+		// service spec does not declare (or that is explicitly excluded, such
+		// as worker-version and internal endpoints) must not be implemented.
+		const exposed = exposedKeys();
+		for (const key of exposed) {
+			expect(serviceContractKeys.has(key) || excludedEndpointKeys.includes(key as never)).toBe(true);
+		}
+	});
+
+	it('excludes only endpoints that genuinely exist in the service spec', () => {
+		// A typo in excludedEndpointKeys would silently let the excluded
+		// endpoint through; every exclusion key must match a real operation in
+		// the service spec (published or unpublished).
+		for (const key of excludedEndpointKeys) {
+			expect(serviceContractKeys.has(key as string)).toBe(true);
+		}
+	});
+
 	it('does not expose worker version or internal endpoints', () => {
-		const exposed = new Set(endpointSpecs.map((spec) => `${spec.method} ${spec.path}`));
+		const exposed = exposedKeys();
 
 		for (const endpoint of excludedEndpointKeys) {
 			expect(exposed.has(endpoint)).toBe(false);

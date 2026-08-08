@@ -34,3 +34,10 @@ jobs:
 
       - name: Run build
         run: 'npm run build'
+
+      - name: Run tests
+        # The endpointScope contract tests compare the node's implemented
+        # endpoints against resources/openapi.contract.json, so a new upstream
+        # CoreClaw endpoint fails CI until the node implements (or explicitly
+        # excludes) it.
+        run: 'npm test'
